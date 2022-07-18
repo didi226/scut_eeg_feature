@@ -11,13 +11,13 @@ class Feature:
                                   'spect_slope', 'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
                                   'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
 
-    def __init__(self, data=None, sfreq=250, selected_funcs=None, params=None, n_jobs=1, memory=None):
+    def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, memory=None,ch_names=None):
         if data is None:
             self.features = None
             self.feature_names = None
             return
         funcs, feature_names = self.get_funcs(selected_funcs)
-        features = extract_features(data, sfreq, funcs, params, n_jobs, memory)
+        features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, memory,ch_names)
         self.features = rearrange(features, 'b (channel feature) -> b channel feature',
                                        channel=data.shape[1])
         self.feature_names = feature_names
