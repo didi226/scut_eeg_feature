@@ -3,4 +3,5 @@
 *~
 *.mat
 *.ipynb
-/test
+/test*
+**/__pycache__
