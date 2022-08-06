@@ -20,5 +20,7 @@ setuptools.setup(
         'einops',
         'mne_features',
         'PyEMD',
+        'scipy',
+        'emd-signal'
     ],
 )
