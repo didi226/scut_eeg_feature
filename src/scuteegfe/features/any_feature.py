@@ -8,8 +8,8 @@ def compute_Hilbert_abs(data):
     feature=abs(hilbert(data)).reshape(-1)
     #feature=feature[np.newaxis, :];
     return feature
-def compute_EMD(data,sfre=250,EMD_times=1,EMD_params=6):
-    EMD_length=sfre*EMD_times
+def compute_EMD(data,sfreq=250,EMD_times=1,EMD_params=6):
+    EMD_length=sfreq*EMD_times
     n_channel, n_times = data.shape
     n_length = n_times // EMD_length
     signal_imfs = np.zeros((n_channel, n_length, EMD_params, EMD_length));
@@ -20,7 +20,7 @@ def compute_EMD(data,sfre=250,EMD_times=1,EMD_params=6):
           signal_imfs[N_channel,N_length,:,:]=IMFs[0:EMD_params,:]
     feature=signal_imfs.reshape(-1)
     return feature
-def compute_(data):
+def compute_hosa_(data):
 
     return
 
