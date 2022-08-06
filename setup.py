@@ -19,5 +19,6 @@ setuptools.setup(
         'importlib-metadata; python_version >= "3.8"',
         'einops',
         'mne_features',
+        'PyEMD',
     ],
 )
