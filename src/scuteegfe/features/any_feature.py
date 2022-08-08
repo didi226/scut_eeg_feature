@@ -132,6 +132,7 @@ def band_DE(Pxx, f, Par_ratios=1, band=None):
     return san_D
 
 
+
 def compute_test2(data):
     return np.mean(data, axis=-1)
 
