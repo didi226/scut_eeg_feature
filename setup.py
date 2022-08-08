@@ -21,6 +21,6 @@ setuptools.setup(
         'mne_features',
         'PyEMD',
         'scipy',
-        'emd-signal'
+        'pywt'
     ],
 )

@@ -3,6 +3,7 @@ from scipy.signal import hilbert
 from scipy.stats import iqr
 from PyEMD import EMD
 import antropy as ant
+import pywt
 from ..HOSA.conventional.bicoherence import bicoherence
 
 
@@ -67,6 +68,68 @@ def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None
     return feature
 
 
+def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=1,
+                            wavelet_name= 'gaus1', band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
+    '''
+    :param data:            ndarray, shape (n_channels, n_times)
+    :param sfreq:           sfreq
+    :param m_times:         time  uit  s
+    :param m_Par_ratios:    ratios or not
+                            1      ratios
+                            0      no ratios
+    :param m_entropy:       1      m_entropy
+                            0      energy
+    :param wavelet_name:    wavelet_name
+    :param band:            ndarray shape (2,fea_num) [fre_low, frre_high]
+    :return:                ndarray shape (n_channels,fea_num+m_Par_ratios * 2)
+    :ex:
+                            rng = np.random.RandomState(42)
+                            n_epochs, n_channels, n_times = 2,2,2000
+                            X = rng.randn(n_epochs, n_channels, n_times)
+                            feat=Feature(X,sfreq=250,selected_funcs={'wavelet_entropy'})
+    '''
+    time_sec = int(m_times * sfreq)
+    fea_num = int(band.shape[0] + m_Par_ratios * 2)
+    n_channel, n_times = data.shape
+    de = np.empty((int(n_channel),fea_num))
+    for channel in range(n_channel):
+        # initialization
+        section_num = int(np.ceil((n_times/ time_sec)))
+        section_de = np.empty((fea_num, section_num))
+        # for one second calculate cwt
+        for section in range(section_num):
+            section_data = data[channel, section * time_sec:(section + 1) * time_sec]
+            spec, f = imp_extract(section_data=section_data, Fs=sfreq, time_sec=time_sec,wavelet_name=wavelet_name)
+            section_de[:, section] = band_DE(spec, f, Par_ratios=m_Par_ratios, band=band)
+        de_mean = np.sum(section_de, axis=1);
+        if m_entropy == 1:
+            de_mean = np.multiply(de_mean, np.log(de_mean));
+        de[channel,:] = de_mean
+    feature = de.reshape(-1)
+    return feature
+def imp_extract(section_data,Fs, time_sec,wavelet_name):
+    f = np.arange(1, 129, 0.2)
+    [wt, f1] = pywt.cwt(section_data, f, wavelet_name, 1 / Fs)  # 'mexh'
+    cwt_re = np.sum(abs(wt), axis=1) * 2 / time_sec;  #
+    return cwt_re,f1
+def band_DE(Pxx, f, Par_ratios=1, band=None):
+    """
+    Feature extraction of fixed frequency band
+    :param Pxx:  frequency band parameter
+    :param f:    frequency range
+    :param band: selected frequency band
+    :return:     固定频带的特征
+    """
+    fea_num=int(band.shape[0])
+    psd = np.empty((fea_num))
+    for i in range(fea_num):
+        idx = np.where((f >= band[i, 0]) & (f <= band[i, 1]))
+        psd[i] = np.sum(np.multiply(Pxx[idx], Pxx[idx]))
+        if Par_ratios == 1:
+            san_D = np.hstack((psd, psd[2] / psd[1], psd[3] / psd[1]))
+        else:
+            san_D = psd
+    return san_D
 
 
 def compute_test2(data):
@@ -89,7 +152,6 @@ def compute_Num_zero_crossings(data):
     :return: ndarray, shape (n_channels,)
     """
     return ant.num_zerocross(data, axis=1)
-
 
 def compute_Petrosian_fd(data):
     """
