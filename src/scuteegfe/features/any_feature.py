@@ -21,15 +21,15 @@ def compute_EMD(data, sfreq=250, EMD_times=1, EMD_params=6):
     """
     经验模式分解
     :param data: ndarray, shape (n_channels, n_times)
-    :return: ndarray, shape (n_channels, n_length*EMD_params*EMD_length)
+    :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
     """
     EMD_length = sfreq * EMD_times
 
     n_channel, n_times = data.shape
-    n_length = n_times // EMD_length
-    signal_imfs = np.zeros((n_channel, n_length, EMD_params, EMD_length))
+    section_num = n_times // EMD_length
+    signal_imfs = np.zeros((n_channel, section_num, EMD_params, EMD_length))
     emd = EMD()
-    for N_length in range(n_length):
+    for N_length in range(section_num):
         for N_channel in range(n_channel):
             IMFs = emd.emd(data[N_channel, N_length * EMD_length:(N_length + 1) * EMD_length])
             signal_imfs[N_channel, N_length, :, :] = IMFs[0:EMD_params, :]
@@ -68,7 +68,7 @@ def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None
     return feature
 
 
-def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=1,
+def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=True,Average=True,
                             wavelet_name= 'gaus1', band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
     '''
     :param data:            ndarray, shape (n_channels, n_times)
@@ -77,11 +77,16 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=1,
     :param m_Par_ratios:    ratios or not
                             1      ratios
                             0      no ratios
-    :param m_entropy:       1      m_entropy
-                            0      energy
+    :param m_entropy:       bool
+                            True       m_entropy   公式含log
+                            False      energy      公式不含log
+    :param Average          bool
+                            True       求平均
+                            False      不求平均
     :param wavelet_name:    wavelet_name
     :param band:            ndarray shape (2,fea_num) [fre_low, frre_high]
-    :return:                ndarray shape (n_channels,fea_num+m_Par_ratios * 2)
+    :return:                Average=True: ndarray shape (n_channels,fea_num+m_Par_ratios * 2)
+                            Average=Flase:ndarray shape (n_channels,(fea_num+m_Par_ratios * 2)*section_num)
     :ex:
                             rng = np.random.RandomState(42)
                             n_epochs, n_channels, n_times = 2,2,2000
@@ -91,20 +96,26 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=1,
     time_sec = int(m_times * sfreq)
     fea_num = int(band.shape[0] + m_Par_ratios * 2)
     n_channel, n_times = data.shape
-    de = np.empty((int(n_channel),fea_num))
+    section_num = int(np.ceil((n_times / time_sec)))
+    if Average:
+        de = np.empty((int(n_channel), fea_num))
+    else:
+        de = np.empty((int(n_channel), fea_num, section_num))
     for channel in range(n_channel):
         # initialization
-        section_num = int(np.ceil((n_times/ time_sec)))
         section_de = np.empty((fea_num, section_num))
         # for one second calculate cwt
         for section in range(section_num):
             section_data = data[channel, section * time_sec:(section + 1) * time_sec]
-            spec, f = imp_extract(section_data=section_data, Fs=sfreq, time_sec=time_sec,wavelet_name=wavelet_name)
+            spec, f = imp_extract(section_data=section_data, Fs=sfreq, time_sec=time_sec, wavelet_name=wavelet_name)
             section_de[:, section] = band_DE(spec, f, Par_ratios=m_Par_ratios, band=band)
-        de_mean = np.sum(section_de, axis=1);
-        if m_entropy == 1:
+        if Average:
+            de_mean = np.sum(section_de, axis=1);
+        else:
+            de_mean = section_de;
+        if m_entropy:
             de_mean = np.multiply(de_mean, np.log(de_mean));
-        de[channel,:] = de_mean
+        de[channel, :] = de_mean
     feature = de.reshape(-1)
     return feature
 def imp_extract(section_data,Fs, time_sec,wavelet_name):
