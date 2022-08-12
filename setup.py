@@ -24,5 +24,6 @@ setuptools.setup(
         'PyWavelets'
         'pyts'
         'antropy'
+        'pyentrp'
     ],
 )

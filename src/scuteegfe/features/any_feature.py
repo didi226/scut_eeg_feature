@@ -7,6 +7,8 @@ import pywt
 from ..HOSA.conventional.bicoherence import bicoherence
 from pyts.metrics.dtw import dtw
 import antropy as ant
+from pyentrp import entropy as ent
+
 
 def compute_FDA(data, sfreq=250, win_times=1):
     """
@@ -14,7 +16,7 @@ def compute_FDA(data, sfreq=250, win_times=1):
     去趋势波动分析用于寻找时间序列中的长期统计相关性
     :param data: ndarray, shape (n_channels, n_times)
     :param data: win_times  窗口时间
-    :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
+    :return: ndarray, shape (n_channels, section_num)
     """
     win_len = sfreq * win_times
 
@@ -26,6 +28,127 @@ def compute_FDA(data, sfreq=250, win_times=1):
             feature[i_channel,i_section]=ant.detrended_fluctuation(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
     feature = feature.reshape(-1)
     return feature
+def compute_Shannon_entropy(data, sfreq=250, win_times=1):
+    """
+    Shannon_entropy
+    香农熵
+    :param data: ndarray, shape (n_channels, n_times)
+    :param data: win_times  窗口时间
+    :return: ndarray, shape (n_channels, section_num)
+    """
+    win_len = sfreq * win_times
+
+    n_channel, n_times = data.shape
+    section_num = n_times // win_len
+    feature = np.zeros((n_channel, section_num))
+    for i_section in range(section_num):
+        for i_channel in range(n_channel):
+            feature[i_channel,i_section]=ent.shannon_entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
+    feature = feature.reshape(-1)
+    return feature
+def Tsallis_Entropy(time_series,alpha):
+    """
+    Return the Tsallis_Entropy of the sample data.
+    Args:
+        time_series: Vector or string of the sample data
+    Returns:
+        The Tsallis_Entropy as float value
+    reference：
+        https://zhuanlan.zhihu.com/p/81462898
+        这里有个疑问log的底数为啥是2
+    """
+
+    # Check if string
+    if not isinstance(time_series, str):
+        time_series = list(time_series)
+
+    # Create a frequency data
+    data_set = list(set(time_series))
+    freq_list = []
+    for entry in data_set:
+        counter = 0.
+        for i in time_series:
+            if i == entry:
+                counter += 1
+        freq_list.append(float(counter) / len(time_series))
+
+    # Shannon entropy
+    ent = 0.0
+    for freq in freq_list:
+        ent += freq ** (alpha)
+    ent =1/(1-alpha)*(ent-1)
+    return ent
+def Renyi_Entropy(time_series,alpha):
+    """Return the Renyi_Entropy of the sample data.
+    Args:
+        time_series: Vector or string of the sample data
+    Returns:
+        The Renyi_Entropy as float value
+    """
+
+    # Check if string
+    if not isinstance(time_series, str):
+        time_series = list(time_series)
+
+    # Create a frequency data
+    data_set = list(set(time_series))
+    freq_list = []
+    for entry in data_set:
+        counter = 0.
+        for i in time_series:
+            if i == entry:
+                counter += 1
+        freq_list.append(float(counter) / len(time_series))
+
+    # Shannon entropy
+    ent = 0.0
+    for freq in freq_list:
+        ent += freq**(alpha)
+    ent=1/(1-alpha)*np.log2(ent)
+
+    return ent
+def compute_Coherence(data):
+
+    return
+
+def compute_Renyi_Entropy(data, sfreq=250, win_times=1):
+    """
+    Renyi_Entropy
+    tallis熵是Shannon(或Boltzmann-Gibbs)熵在熵非扩展情况下的推广
+    :param data: ndarray, shape (n_channels, n_times)
+    :param data: win_times  窗口时间
+    :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
+    """
+    win_len = sfreq * win_times
+
+    n_channel, n_times = data.shape
+    section_num = n_times // win_len
+    feature = np.zeros((n_channel, section_num))
+    for i_section in range(section_num):
+        for i_channel in range(n_channel):
+            feature[i_channel,i_section]=Renyi_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
+    feature = feature.reshape(-1)
+    return feature
+def compute_Tsallis_Entropy(data, sfreq=250, win_times=1):
+    """
+    Tsallis_Entropy
+    tallis熵是Shannon(或Boltzmann-Gibbs)熵在熵非扩展情况下的推广
+    :param data: ndarray, shape (n_channels, n_times)
+    :param data: win_times  窗口时间
+    :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
+    """
+    win_len = sfreq * win_times
+
+    n_channel, n_times = data.shape
+    section_num = n_times // win_len
+    feature = np.zeros((n_channel, section_num))
+    for i_section in range(section_num):
+        for i_channel in range(n_channel):
+            feature[i_channel,i_section]=Tsallis_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
+    feature = feature.reshape(-1)
+    return feature
+
+
 def compute_Hilbert_abs(data):
     """
     希尔伯特模
