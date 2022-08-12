@@ -22,5 +22,6 @@ setuptools.setup(
         'EMD-signal',
         'scipy',
         'PyWavelets'
+        'pyts'
     ],
 )

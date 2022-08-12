@@ -5,6 +5,7 @@ from PyEMD import EMD
 import antropy as ant
 import pywt
 from ..HOSA.conventional.bicoherence import bicoherence
+from pyts.metrics.dtw import dtw
 
 
 def compute_Hilbert_abs(data):
@@ -66,6 +67,54 @@ def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None
         feature.append(bic)
     feature = np.array(feature).reshape(-1)
     return feature
+def compute_Itakura_Distance(data,baseline_data=None,dist='square', options={'max_slope': 2.0},
+                                    precomputed_cost=None, return_cost=False,
+                                    return_accumulated=False, return_path=False):
+    """
+    :param data:                 ndarray, shape (n_channels, n_times)
+    :param baseline_data:        ndarray, shape (n_channels, n_times)
+    :param dist:                 ‘square’, ‘absolute’, ‘precomputed’ or callable (default = ‘square’)
+                                 Distance used. If ‘square’, the squared difference is used. If ‘absolute’,
+                                 the absolute difference is used. If callable, it must be a function with a numba.njit() decorator
+                                 that takes as input two numbers (two arguments) and returns a number.
+                                 If ‘precomputed’, precomputed_cost must be the cost matrix and method must be ‘classic’,
+                                 ‘sakoechiba’ or ‘itakura’.
+    :param options:              None or dict (default = None)
+                                 Dictionary of method options. Here is a quick summary of the available options for each method:
+                                 ‘classic’: None
+                                 ‘sakoechiba’: window_size (int or float)
+                                 ‘itakura’: max_slope (float)
+                                 ‘region’ : region (array-like)
+                                 ‘multiscale’: resolution (int) and radius (int)
+                                  ‘fast’: radius (int)
+                                 For more information on these options, see show_options().
+    :param precomputed_cost:     array-like, shape = (n_timestamps_1, n_timestamps_2) (default = None)
+                                 Precomputed cost matrix between the time series. Ignored if dist != 'precomputed'.
+    :param return_cost:          bool (default = False)
+                                 If True, the cost matrix is returned.
+    :param return_accumulated:   bool (default = False)
+                                 If True, the accumulated cost matrix is returned.
+    :param return_path:          bool (default = False)
+                                 If True, the optimal path is returned.
+    :return:                     ndarray shape (n_channels, ) Itakura_distance for every channel
+    ex:                          rng = np.random.RandomState(42)
+                                 n_epochs, n_channels, n_times = 2,2,2000
+                                 rng_ = np.random.RandomState(43)
+                                 data1 = rng.randn(n_epochs, n_channels, n_times)
+                                 baseline_data=  np.squeeze(rng_.randn(1, n_channels, n_times))
+                                 select_para=dict({'Itakura_Distance__baseline_data':baseline_data})
+                                 feat=Feature(data1,selected_funcs={'Itakura_Distance'},funcs_params=select_para)
+    """
+    n_channel, n_times = data.shape
+    Itakura_distance = np.zeros((n_channel))
+    for i_channel in range(n_channel):
+        Itakura_distance[i_channel] = dtw(x=data[i_channel, :], y=baseline_data[i_channel, :],
+                                          dist=dist, method='itakura',
+                                          options=options,
+                                          precomputed_cost=precomputed_cost, return_cost=return_cost,
+                                          return_accumulated=return_accumulated, return_path=return_path)
+    return Itakura_distance
+
 
 
 def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=True,Average=True,
