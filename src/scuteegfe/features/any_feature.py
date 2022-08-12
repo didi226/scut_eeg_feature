@@ -6,8 +6,26 @@ import antropy as ant
 import pywt
 from ..HOSA.conventional.bicoherence import bicoherence
 from pyts.metrics.dtw import dtw
+import antropy as ant
 
+def compute_FDA(data, sfreq=250, win_times=1):
+    """
+    Detrended fluctuation analysis
+    去趋势波动分析用于寻找时间序列中的长期统计相关性
+    :param data: ndarray, shape (n_channels, n_times)
+    :param data: win_times  窗口时间
+    :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
+    """
+    win_len = sfreq * win_times
 
+    n_channel, n_times = data.shape
+    section_num = n_times // win_len
+    feature = np.zeros((n_channel, section_num))
+    for i_section in range(section_num):
+        for i_channel in range(n_channel):
+            feature[i_channel,i_section]=ant.detrended_fluctuation(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
+    feature = feature.reshape(-1)
+    return feature
 def compute_Hilbert_abs(data):
     """
     希尔伯特模
@@ -25,7 +43,6 @@ def compute_EMD(data, sfreq=250, EMD_times=1, EMD_params=6):
     :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
     """
     EMD_length = sfreq * EMD_times
-
     n_channel, n_times = data.shape
     section_num = n_times // EMD_length
     signal_imfs = np.zeros((n_channel, section_num, EMD_params, EMD_length))
@@ -71,6 +88,7 @@ def compute_Itakura_Distance(data,baseline_data=None,dist='square', options={'ma
                                     precomputed_cost=None, return_cost=False,
                                     return_accumulated=False, return_path=False):
     """
+    :reference                   https://pyts.readthedocs.io/en/stable/generated/pyts.metrics.dtw.html#pyts.metrics.dtw
     :param data:                 ndarray, shape (n_channels, n_times)
     :param baseline_data:        ndarray, shape (n_channels, n_times)
     :param dist:                 ‘square’, ‘absolute’, ‘precomputed’ or callable (default = ‘square’)
@@ -96,6 +114,7 @@ def compute_Itakura_Distance(data,baseline_data=None,dist='square', options={'ma
                                  If True, the accumulated cost matrix is returned.
     :param return_path:          bool (default = False)
                                  If True, the optimal path is returned.
+
     :return:                     ndarray shape (n_channels, ) Itakura_distance for every channel
     ex:                          rng = np.random.RandomState(42)
                                  n_epochs, n_channels, n_times = 2,2,2000
@@ -114,6 +133,7 @@ def compute_Itakura_Distance(data,baseline_data=None,dist='square', options={'ma
                                           precomputed_cost=precomputed_cost, return_cost=return_cost,
                                           return_accumulated=return_accumulated, return_path=return_path)
     return Itakura_distance
+
 
 
 

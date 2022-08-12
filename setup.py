@@ -23,5 +23,6 @@ setuptools.setup(
         'scipy',
         'PyWavelets'
         'pyts'
+        'antropy'
     ],
 )
