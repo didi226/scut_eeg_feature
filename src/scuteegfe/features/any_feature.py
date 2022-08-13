@@ -6,8 +6,8 @@ import antropy as ant
 import pywt
 from ..HOSA.conventional.bicoherence import bicoherence
 from pyts.metrics.dtw import dtw
-import antropy as ant
 from pyentrp import entropy as ent
+from scipy import signal
 
 
 def compute_FDA(data, sfreq=250, win_times=1):
@@ -19,7 +19,6 @@ def compute_FDA(data, sfreq=250, win_times=1):
     :return: ndarray, shape (n_channels, section_num)
     """
     win_len = sfreq * win_times
-
     n_channel, n_times = data.shape
     section_num = n_times // win_len
     feature = np.zeros((n_channel, section_num))
@@ -57,11 +56,9 @@ def Tsallis_Entropy(time_series,alpha):
         https://zhuanlan.zhihu.com/p/81462898
         这里有个疑问log的底数为啥是2
     """
-
     # Check if string
     if not isinstance(time_series, str):
         time_series = list(time_series)
-
     # Create a frequency data
     data_set = list(set(time_series))
     freq_list = []
@@ -78,6 +75,19 @@ def Tsallis_Entropy(time_series,alpha):
         ent += freq ** (alpha)
     ent =1/(1-alpha)*(ent-1)
     return ent
+def filter_bank(data,sfreq=250,frequences=None):
+    '''
+    :param data:               [n_channel,n_times]
+    :param frequences:         [2,n_filters]  low_frequence high_frequence
+    :return:filters_data:      [n_filters,n_channel,n_times]
+    '''
+    n_filters=frequences.shape[1]
+    n_channel,n_times=data.shape
+    filters_data=np.zeros((n_filters,n_channel,n_times))
+    for i_filters in range(n_filters):
+        b, a = signal.butter(8, [2*frequences[0,i_filters]/sfreq, 2*frequences[1,i_filters]/sfreq], 'bandpass')  # 配置滤波器 8 表示滤波器的阶数
+        filters_data[i_filters, :] = signal.filtfilt(b, a, data)  # data为要过滤的信号
+    return filters_data
 def Renyi_Entropy(time_series,alpha):
     """Return the Renyi_Entropy of the sample data.
     Args:
@@ -85,7 +95,6 @@ def Renyi_Entropy(time_series,alpha):
     Returns:
         The Renyi_Entropy as float value
     """
-
     # Check if string
     if not isinstance(time_series, str):
         time_series = list(time_series)
@@ -107,9 +116,35 @@ def Renyi_Entropy(time_series,alpha):
     ent=1/(1-alpha)*np.log2(ent)
 
     return ent
-def compute_Coherence(data):
+def compute_Coherence(data,Co_channel=None,
+                                            sfreq=250,band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
+    """
+    :param data:          ndarray, shape (n_channels, n_times)
+    :param Co_channel:    ndarray shape [2,n_Co_channel] 需要计算相关性的通道序号
+    :param sfreq:         sfreq
+    :param band:          ndarray shape (2,fea_num) [fre_low, frre_high]
+    :return:              feature  ndarray shape    (n_channel, n_channel * band_num) 未计算相关性部分数值为0
+    """
+    n_channel, n_times = data.shape
+    band_num=band.shape[1]
+    feature = np.zeros((n_channel, n_channel * band_num))
+    if Co_channel is None:
+        Co_channel=np.zeros((2,n_channel*n_channel))
+        ij_channel=0
+        for i_channel in range(n_channel):
+            for j_channel in range(n_channel):
+                Co_channel[:,ij_channel]=[i_channel,j_channel]
+                ij_channel=ij_channel+1
 
-    return
+
+    data_filter=filter_bank(data=data,sfreq=sfreq,frequences=band)
+    for i_band in range(band.shape[1]):
+       for i_Co_channel in range(Co_channel.shape[1]):
+           channel_0=Co_channel[0,i_Co_channel];  channel_1=Co_channel[1,i_Co_channel];
+           x=data_filter[i_band,channel_0,:];     y=data_filter[i_band,channel_1,:]
+           feature[channel_0,channel_1*band_num+i_band]=signal.coherence(x, y, fs=1.0,
+                                window='hann', nperseg=None, noverlap=None, nfft=None, detrend='constant', axis=- 1)
+    return feature
 
 def compute_Renyi_Entropy(data, sfreq=250, win_times=1):
     """
