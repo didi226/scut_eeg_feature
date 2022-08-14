@@ -8,6 +8,8 @@ from ..HOSA.conventional.bicoherence import bicoherence
 from pyts.metrics.dtw import dtw
 from pyentrp import entropy as ent
 from scipy import signal
+from scipy.fftpack import fft
+from scipy.fft import   fftfreq
 
 
 def compute_FDA(data, sfreq=250, win_times=1):
@@ -75,6 +77,96 @@ def Tsallis_Entropy(time_series,alpha):
         ent += freq ** (alpha)
     ent =1/(1-alpha)*(ent-1)
     return ent
+def get_fft_values(y, N=None, f_s=250):
+    '''
+    :param y:   array  times
+    :param N:   使用的样本数
+    :param f_s: 采样频率
+    :return:
+    f_values    频谱对应的频率
+    fft_values  频谱
+    '''
+    if N is None:
+        N=y.shape[0]
+    f_values = np.linspace(0.0, f_s/2.0, N//2)
+    fft_values_ = fft.fft(y)
+    fft_values = 2.0/N * np.abs(fft_values_[0:N//2])
+    return f_values, fft_values
+
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+
+def compute_Harmonic_Parameters(data,sfreq=250,
+                                band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
+   '''
+   谐波参数（English：  Harmonic Parameters）
+   波参数包括三个参数：  中心频率 (fc) 、带宽 (fr) 和中心频率处的频谱值 (Sfc)
+   :param data:      ndarray, shape (n_channels, n_times)
+   :param sfreq:     采样频率
+   :param band:      对应的频带
+   :return:          ndarray   shape (n_channels,3)
+                     [中心频率 (fc),带宽 (fr),中心频率处的频谱值 (Sfc)]
+   '''
+   n_channel, n_times = data.shape
+   band_num=band.shape[0]
+   feature=np.zeros((n_channel,band_num,3))
+   for i_channel in range(n_channel):
+     f_, fft_ = get_fft_values(data[i_channel, :], f_s=sfreq)
+     for i_band in range(band_num):
+           center_frequency=(band[ i_band,0] + band[i_band,1]) / 2
+           frequency_band=abs(band[ i_band,0] - band[i_band,1])
+           feature[n_channel,i_band,0]=center_frequency
+           feature[n_channel, i_band, 1] = frequency_band
+           f_idx=find_nearest(f_,center_frequency)
+           feature[n_channel, i_band, 2]=fft_[f_idx]
+   feature = feature.reshape(-1)
+   return feature
+def compute_Median_Frequency(data,sfreq=250,
+                                band=np.array([[0.5,2],[2, 4], [4, 5],
+                                [5, 7], [7, 10], [10, 13],[13,15],[15,20],[20,30],[30,40]])):
+    '''
+    reference:      Automatic Sleep Staging using Support Vector Machines with Posterior Probability Estimates
+                    （默认band参考论文）
+                    Median_Frequency的定义参考论文
+                    Mean and Median Frequency of EMG Signal to Determine Muscle Force based on Time- dependent Power Spectrum
+    :param data:
+    :param sfreq:
+    :param band:
+    :return:
+    '''
+    n_channel, n_times = data.shape
+    band_num = band.shape[0]
+    feature = np.zeros((n_channel, band_num))
+    for i_channel in range(n_channel):
+       f_, fft_ = get_fft_values(data[i_channel, :], f_s=sfreq)
+       feature[n_channel,:]=band_Median_Frequency(Pxx=fft_,f=f_,band=band)
+    feature = feature.reshape(-1)
+    return feature
+def band_Median_Frequency(Pxx, f, band=None):
+    """
+    Feature extraction of fixed frequency band
+    :param Pxx:  frequency band parameter
+    :param f:    frequency range
+    :param band: selected frequency band
+    :return:     固定频带的特征
+    """
+    fea_num=int(band.shape[0])
+    psd = np.empty((fea_num));Median_Frequency=np.empty((fea_num));
+    for i in range(fea_num):
+        idx = np.where((f >= band[i, 0]) & (f <= band[i, 1]))
+        psd[i] = np.sum(np.multiply(Pxx[idx], Pxx[idx]))
+        psd_m=0
+        for i_idx in idx:
+            if(psd_m<psd[i]/2):
+              psd_m=+np.multiply(Pxx[i_idx], Pxx[i_idx])
+            else:
+                Median_Frequency[i]=f[i_idx]
+                break;
+
+    return Median_Frequency
+
 def filter_bank(data,sfreq=250,frequences=None):
     '''
     :param data:               [n_channel,n_times]
@@ -117,8 +209,9 @@ def Renyi_Entropy(time_series,alpha):
 
     return ent
 def compute_Coherence(data,Co_channel=None,
-                                            sfreq=250,band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
+            sfreq=250,band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
     """
+    相干性反映了来自不同导数的两个信号在某些频域中的线性相关程度。
     :param data:          ndarray, shape (n_channels, n_times)
     :param Co_channel:    ndarray shape [2,n_Co_channel] 需要计算相关性的通道序号
     :param sfreq:         sfreq
@@ -144,6 +237,7 @@ def compute_Coherence(data,Co_channel=None,
            x=data_filter[i_band,channel_0,:];     y=data_filter[i_band,channel_1,:]
            feature[channel_0,channel_1*band_num+i_band]=signal.coherence(x, y, fs=1.0,
                                 window='hann', nperseg=None, noverlap=None, nfft=None, detrend='constant', axis=- 1)
+    feature = feature.reshape(-1)
     return feature
 
 def compute_Renyi_Entropy(data, sfreq=250, win_times=1):
@@ -311,7 +405,7 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
                             True       求平均
                             False      不求平均
     :param wavelet_name:    wavelet_name
-    :param band:            ndarray shape (2,fea_num) [fre_low, frre_high]
+    :param band:            ndarray shape (fea_num,2) [fre_low, frre_high]
     :return:                Average=True: ndarray shape (n_channels,fea_num+m_Par_ratios * 2)
                             Average=Flase:ndarray shape (n_channels,(fea_num+m_Par_ratios * 2)*section_num)
     :ex:
@@ -334,7 +428,7 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
         # for one second calculate cwt
         for section in range(section_num):
             section_data = data[channel, section * time_sec:(section + 1) * time_sec]
-            spec, f = imp_extract(section_data=section_data, Fs=sfreq, time_sec=time_sec, wavelet_name=wavelet_name)
+            spec, f = imp_extract_wavelet(section_data=section_data, Fs=sfreq, time_sec=time_sec, wavelet_name=wavelet_name)
             section_de[:, section] = band_DE(spec, f, Par_ratios=m_Par_ratios, band=band)
         if Average:
             de_mean = np.sum(section_de, axis=1);
@@ -345,11 +439,15 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
         de[channel, :] = de_mean
     feature = de.reshape(-1)
     return feature
-def imp_extract(section_data,Fs, time_sec,wavelet_name):
+def imp_extract_wavelet(section_data,Fs, time_sec,wavelet_name):
     f = np.arange(1, 129, 0.2)
     [wt, f1] = pywt.cwt(section_data, f, wavelet_name, 1 / Fs)  # 'mexh'
     cwt_re = np.sum(abs(wt), axis=1) * 2 / time_sec;  #
     return cwt_re,f1
+def imp_extract_fft(section_data,Fs,time_sec):
+        f = np.arange(time_sec) / (time_sec / Fs)
+        m_fft = abs(fft(section_data, time_sec) * 2 / time_sec);
+        return m_fft[range(int(time_sec / 2))], f[range(int(time_sec/ 2))]
 def band_DE(Pxx, f, Par_ratios=1, band=None):
     """
     Feature extraction of fixed frequency band
@@ -363,10 +461,10 @@ def band_DE(Pxx, f, Par_ratios=1, band=None):
     for i in range(fea_num):
         idx = np.where((f >= band[i, 0]) & (f <= band[i, 1]))
         psd[i] = np.sum(np.multiply(Pxx[idx], Pxx[idx]))
-        if Par_ratios == 1:
-            san_D = np.hstack((psd, psd[2] / psd[1], psd[3] / psd[1]))
-        else:
-            san_D = psd
+    if Par_ratios == 1:
+        san_D = np.hstack((psd, psd[2] / psd[1], psd[3] / psd[1]))
+    else:
+        san_D = psd
     return san_D
 
 
