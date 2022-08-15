@@ -9,7 +9,8 @@ from pyts.metrics.dtw import dtw
 from pyentrp import entropy as ent
 from scipy import signal
 from scipy.fftpack import fft
-from scipy.fft import   fftfreq
+from scipy.fft import fftfreq
+import tftb
 
 
 def compute_FDA(data, sfreq=250, win_times=1):
@@ -128,7 +129,7 @@ def compute_Median_Frequency(data,sfreq=250,
                                 [5, 7], [7, 10], [10, 13],[13,15],[15,20],[20,30],[30,40]])):
     '''
     reference:      Automatic Sleep Staging using Support Vector Machines with Posterior Probability Estimates
-                    （默认band参考论文）
+                   （默认band参考论文）
                     Median_Frequency的定义参考论文
                     Mean and Median Frequency of EMG Signal to Determine Muscle Force based on Time- dependent Power Spectrum
     :param data:
@@ -170,14 +171,14 @@ def band_Median_Frequency(Pxx, f, band=None):
 def filter_bank(data,sfreq=250,frequences=None):
     '''
     :param data:               [n_channel,n_times]
-    :param frequences:         [2,n_filters]  low_frequence high_frequence
+    :param frequences:         [n_filters,2]  low_frequence high_frequence
     :return:filters_data:      [n_filters,n_channel,n_times]
     '''
-    n_filters=frequences.shape[1]
+    n_filters=frequences.shape[0]
     n_channel,n_times=data.shape
     filters_data=np.zeros((n_filters,n_channel,n_times))
     for i_filters in range(n_filters):
-        b, a = signal.butter(8, [2*frequences[0,i_filters]/sfreq, 2*frequences[1,i_filters]/sfreq], 'bandpass')  # 配置滤波器 8 表示滤波器的阶数
+        b, a = signal.butter(8, [2*frequences[i_filters,0]/sfreq, 2*frequences[i_filters,1]/sfreq], 'bandpass')  # 配置滤波器 8 表示滤波器的阶数
         filters_data[i_filters, :] = signal.filtfilt(b, a, data)  # data为要过滤的信号
     return filters_data
 def Renyi_Entropy(time_series,alpha):
@@ -213,30 +214,49 @@ def compute_Coherence(data,Co_channel=None,
     """
     相干性反映了来自不同导数的两个信号在某些频域中的线性相关程度。
     :param data:          ndarray, shape (n_channels, n_times)
-    :param Co_channel:    ndarray shape [2,n_Co_channel] 需要计算相关性的通道序号
+    :param Co_channel:    ndarray shape [n_Co_channel,2] 需要计算相关性的通道序号
     :param sfreq:         sfreq
-    :param band:          ndarray shape (2,fea_num) [fre_low, frre_high]
+    :param band:          ndarray shape (fea_num,2) [fre_low, frre_high]
     :return:              feature  ndarray shape    (n_channel, n_channel * band_num) 未计算相关性部分数值为0
     """
     n_channel, n_times = data.shape
-    band_num=band.shape[1]
+    band_num=band.shape[0]
     feature = np.zeros((n_channel, n_channel * band_num))
     if Co_channel is None:
-        Co_channel=np.zeros((2,n_channel*n_channel))
+        Co_channel=np.zeros((n_channel*n_channel,2))
         ij_channel=0
         for i_channel in range(n_channel):
             for j_channel in range(n_channel):
-                Co_channel[:,ij_channel]=[i_channel,j_channel]
+                Co_channel[ij_channel,:]=[i_channel,j_channel]
                 ij_channel=ij_channel+1
 
 
     data_filter=filter_bank(data=data,sfreq=sfreq,frequences=band)
     for i_band in range(band.shape[1]):
-       for i_Co_channel in range(Co_channel.shape[1]):
-           channel_0=Co_channel[0,i_Co_channel];  channel_1=Co_channel[1,i_Co_channel];
+       for i_Co_channel in range(Co_channel.shape[0]):
+           channel_0=Co_channel[i_Co_channel,0];  channel_1=Co_channel[i_Co_channel,1];
            x=data_filter[i_band,channel_0,:];     y=data_filter[i_band,channel_1,:]
            feature[channel_0,channel_1*band_num+i_band]=signal.coherence(x, y, fs=1.0,
                                 window='hann', nperseg=None, noverlap=None, nfft=None, detrend='constant', axis=- 1)
+    feature = feature.reshape(-1)
+    return feature
+def  compute_WignerVilleDistribution(data,sfreq=250 ):
+    '''
+    reference:Şen B, Peker M, Çavuşoğlu A, Çelebi FV. A comparative study on classification of sleep stage based
+    on EEG signals using feature selection and classification algorithms.
+    J Med Syst. 2014 Mar;38(3):18. doi: 10.1007/s10916-014-0018-0. Epub 2014 Mar 9. PMID: 24609509.
+    :param data: ndarray, shape (n_channels, n_times)
+    :param sfreq:
+    :return:     ndarray, shape (n_channels, 4)
+    这里对于最大频率的理解存疑
+    '''
+    n_channel, n_times = data.shape
+    feature = np.zeros((n_channel, 4))
+    for i_channel in range(n_channel):
+        wvd=tftb.processing.WignerVilleDistribution(signal=data[i_channel,:],
+                                                timestamps=np.arrange(n_times)*(1/sfreq))
+        tfr_wvd, t_wvd, f_wvd = wvd.run()
+        feature[i_channel,:]=np.polyfit(t_wvd, tfr_wvd[-1,:], 3)
     feature = feature.reshape(-1)
     return feature
 
