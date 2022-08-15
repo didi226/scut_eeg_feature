@@ -25,5 +25,6 @@ setuptools.setup(
         'pyts'
         'antropy'
         'pyentrp'
+        'tftb'
     ],
 )

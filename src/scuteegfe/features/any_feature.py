@@ -48,7 +48,7 @@ def compute_Shannon_entropy(data, sfreq=250, win_times=1):
             feature[i_channel,i_section]=ent.shannon_entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
     feature = feature.reshape(-1)
     return feature
-def Tsallis_Entropy(time_series,alpha):
+def Tsallis_Entropy(time_series,alpha=2):
     """
     Return the Tsallis_Entropy of the sample data.
     Args:
@@ -90,14 +90,19 @@ def get_fft_values(y, N=None, f_s=250):
     if N is None:
         N=y.shape[0]
     f_values = np.linspace(0.0, f_s/2.0, N//2)
-    fft_values_ = fft.fft(y)
+    fft_values_ = fft(y)
     fft_values = 2.0/N * np.abs(fft_values_[0:N//2])
     return f_values, fft_values
 
 def find_nearest(array, value):
+    '''
+    :param array:  array
+    :param array:  array
+    :return: 返回array中最靠近value的位置坐标
+    '''
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
-    return array[idx]
+    return idx
 
 def compute_Harmonic_Parameters(data,sfreq=250,
                                 band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
@@ -116,12 +121,12 @@ def compute_Harmonic_Parameters(data,sfreq=250,
    for i_channel in range(n_channel):
      f_, fft_ = get_fft_values(data[i_channel, :], f_s=sfreq)
      for i_band in range(band_num):
-           center_frequency=(band[ i_band,0] + band[i_band,1]) / 2
-           frequency_band=abs(band[ i_band,0] - band[i_band,1])
-           feature[n_channel,i_band,0]=center_frequency
-           feature[n_channel, i_band, 1] = frequency_band
+           center_frequency=(band[i_band,0] + band[i_band,1]) / 2
+           frequency_band=np.abs(band[i_band,0] - band[i_band,1])
+           feature[i_channel,i_band,0]=center_frequency
+           feature[i_channel, i_band, 1] = frequency_band
            f_idx=find_nearest(f_,center_frequency)
-           feature[n_channel, i_band, 2]=fft_[f_idx]
+           feature[i_channel, i_band, 2]=fft_[f_idx]
    feature = feature.reshape(-1)
    return feature
 def compute_Median_Frequency(data,sfreq=250,
@@ -132,9 +137,9 @@ def compute_Median_Frequency(data,sfreq=250,
                    （默认band参考论文）
                     Median_Frequency的定义参考论文
                     Mean and Median Frequency of EMG Signal to Determine Muscle Force based on Time- dependent Power Spectrum
-    :param data:
-    :param sfreq:
-    :param band:
+    :param data:    ndarray, shape (n_channels, n_times)
+    :param sfreq:   采样频率
+    :param band:    对应频带
     :return:
     '''
     n_channel, n_times = data.shape
@@ -142,7 +147,7 @@ def compute_Median_Frequency(data,sfreq=250,
     feature = np.zeros((n_channel, band_num))
     for i_channel in range(n_channel):
        f_, fft_ = get_fft_values(data[i_channel, :], f_s=sfreq)
-       feature[n_channel,:]=band_Median_Frequency(Pxx=fft_,f=f_,band=band)
+       feature[i_channel,:]=band_Median_Frequency(Pxx=fft_,f=f_,band=band)
     feature = feature.reshape(-1)
     return feature
 def band_Median_Frequency(Pxx, f, band=None):
@@ -151,16 +156,16 @@ def band_Median_Frequency(Pxx, f, band=None):
     :param Pxx:  frequency band parameter
     :param f:    frequency range
     :param band: selected frequency band
-    :return:     固定频带的特征
+    :return:     Median_Frequency
     """
     fea_num=int(band.shape[0])
-    psd = np.empty((fea_num));Median_Frequency=np.empty((fea_num));
+    Median_Frequency=np.empty((fea_num));
     for i in range(fea_num):
         idx = np.where((f >= band[i, 0]) & (f <= band[i, 1]))
-        psd[i] = np.sum(np.multiply(Pxx[idx], Pxx[idx]))
+        psd= np.sum(np.multiply(Pxx[idx], Pxx[idx]))
         psd_m=0
         for i_idx in idx:
-            if(psd_m<psd[i]/2):
+            if(psd_m<psd/2):
               psd_m=+np.multiply(Pxx[i_idx], Pxx[i_idx])
             else:
                 Median_Frequency[i]=f[i_idx]
@@ -213,6 +218,7 @@ def compute_Coherence(data,Co_channel=None,
             sfreq=250,band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
     """
     相干性反映了来自不同导数的两个信号在某些频域中的线性相关程度。
+    Automatic sleep scoring: A search for an optimal combination of measures
     :param data:          ndarray, shape (n_channels, n_times)
     :param Co_channel:    ndarray shape [n_Co_channel,2] 需要计算相关性的通道序号
     :param sfreq:         sfreq
@@ -221,23 +227,22 @@ def compute_Coherence(data,Co_channel=None,
     """
     n_channel, n_times = data.shape
     band_num=band.shape[0]
-    feature = np.zeros((n_channel, n_channel * band_num))
+    feature = np.zeros((n_channel, n_channel ,band_num))
     if Co_channel is None:
-        Co_channel=np.zeros((n_channel*n_channel,2))
+        Co_channel=np.zeros((n_channel*n_channel,2),dtype=np.int32)
         ij_channel=0
         for i_channel in range(n_channel):
             for j_channel in range(n_channel):
                 Co_channel[ij_channel,:]=[i_channel,j_channel]
                 ij_channel=ij_channel+1
 
-
-    data_filter=filter_bank(data=data,sfreq=sfreq,frequences=band)
-    for i_band in range(band.shape[1]):
-       for i_Co_channel in range(Co_channel.shape[0]):
+    for i_Co_channel in range(Co_channel.shape[0]):
            channel_0=Co_channel[i_Co_channel,0];  channel_1=Co_channel[i_Co_channel,1];
-           x=data_filter[i_band,channel_0,:];     y=data_filter[i_band,channel_1,:]
-           feature[channel_0,channel_1*band_num+i_band]=signal.coherence(x, y, fs=1.0,
-                                window='hann', nperseg=None, noverlap=None, nfft=None, detrend='constant', axis=- 1)
+           x=data[channel_0,:];     y=data[channel_1,:]
+           print(x.shape,y.shape)
+           ff,cxx=signal.coherence(x, y, fs=sfreq,
+                            window='hann', nperseg=None, noverlap=None, nfft=None, detrend='constant', axis=- 1)
+           feature[channel_0,channel_1,:]=band_DE(cxx,ff,Par_ratios=0,band=band)
     feature = feature.reshape(-1)
     return feature
 def  compute_WignerVilleDistribution(data,sfreq=250 ):
@@ -254,13 +259,13 @@ def  compute_WignerVilleDistribution(data,sfreq=250 ):
     feature = np.zeros((n_channel, 4))
     for i_channel in range(n_channel):
         wvd=tftb.processing.WignerVilleDistribution(signal=data[i_channel,:],
-                                                timestamps=np.arrange(n_times)*(1/sfreq))
+                                                timestamps=np.arange(n_times)*(1/sfreq))
         tfr_wvd, t_wvd, f_wvd = wvd.run()
         feature[i_channel,:]=np.polyfit(t_wvd, tfr_wvd[-1,:], 3)
     feature = feature.reshape(-1)
     return feature
 
-def compute_Renyi_Entropy(data, sfreq=250, win_times=1):
+def compute_Renyi_Entropy(data, sfreq=250, win_times=1,alpha=2):
     """
     Renyi_Entropy
     tallis熵是Shannon(或Boltzmann-Gibbs)熵在熵非扩展情况下的推广
@@ -275,10 +280,10 @@ def compute_Renyi_Entropy(data, sfreq=250, win_times=1):
     feature = np.zeros((n_channel, section_num))
     for i_section in range(section_num):
         for i_channel in range(n_channel):
-            feature[i_channel,i_section]=Renyi_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
+            feature[i_channel,i_section]=Renyi_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
     feature = feature.reshape(-1)
     return feature
-def compute_Tsallis_Entropy(data, sfreq=250, win_times=1):
+def compute_Tsallis_Entropy(data, sfreq=250, win_times=1,alpha=2):
     """
     Tsallis_Entropy
     tallis熵是Shannon(或Boltzmann-Gibbs)熵在熵非扩展情况下的推广
@@ -293,7 +298,7 @@ def compute_Tsallis_Entropy(data, sfreq=250, win_times=1):
     feature = np.zeros((n_channel, section_num))
     for i_section in range(section_num):
         for i_channel in range(n_channel):
-            feature[i_channel,i_section]=Tsallis_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
+            feature[i_channel,i_section]=Tsallis_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
     feature = feature.reshape(-1)
     return feature
 
