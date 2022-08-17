@@ -11,6 +11,7 @@ from scipy import signal
 from scipy.fftpack import fft
 from scipy.fft import fftfreq
 import tftb
+from statsmodels.tsa.arima.model import ARIMA
 
 
 def compute_FDA(data, sfreq=250, win_times=1):
@@ -78,6 +79,34 @@ def Tsallis_Entropy(time_series,alpha=2):
         ent += freq ** (alpha)
     ent =1/(1-alpha)*(ent-1)
     return ent
+def compute_ARMA_kalman_filter(data,AR_p=10,MA_q=1):
+    '''
+    卡尔曼滤波器ARMA建模的系数
+    :param data: ndarray, shape (n_channels, n_times)
+    :param AR_p: AR模型的阶数
+    :param MA_q: MA模型的阶数
+    :return:　　　ndarray　shape (n_channel,AR_p+MA_q)
+    ex:
+    -----------
+        rng = np.random.RandomState(42)
+        n_epochs, n_channels, n_times = 2,1,1750
+        X = rng.randn(n_epochs, n_channels, n_times)
+        feat=Feature(X,sfreq=250,selected_funcs={'ARMA_kalman_filter'})#
+        print(feat.features.shape)
+    reference:
+    -----------
+    [1] Rossow A B, Salles E O T, Côco K F. Automatic sleep staging using a single-channel EEG modeling by Kalman filter
+    and HMM[C]//ISSNIP Biosignals and Biorobotics Conference 2011. IEEE, 2011: 1-6.
+    '''
+    n_channel, n_times = data.shape
+    feature=np.zeros((n_channel,AR_p+MA_q))
+    for i_channel in range(n_channel):
+        arma_mod = ARIMA(data[i_channel,:], order=(AR_p, 0, MA_q))
+        arma_res = arma_mod.fit()
+        feature[i_channel,:]=np.concatenate([arma_res.polynomial_ar[1:], arma_res. polynomial_ma[1:]])
+    feature = feature.reshape(-1)
+    return feature
+
 def get_fft_values(y, N=None, f_s=250):
     '''
     :param y:   array  times
@@ -114,6 +143,7 @@ def compute_Harmonic_Parameters(data,sfreq=250,
    :param band:      对应的频带
    :return:          ndarray   shape (n_channels,3)
                      [中心频率 (fc),带宽 (fr),中心频率处的频谱值 (Sfc)]
+
    '''
    n_channel, n_times = data.shape
    band_num=band.shape[0]
@@ -133,14 +163,20 @@ def compute_Median_Frequency(data,sfreq=250,
                                 band=np.array([[0.5,2],[2, 4], [4, 5],
                                 [5, 7], [7, 10], [10, 13],[13,15],[15,20],[20,30],[30,40]])):
     '''
-    reference:      Automatic Sleep Staging using Support Vector Machines with Posterior Probability Estimates
-                   （默认band参考论文）
-                    Median_Frequency的定义参考论文
-                    Mean and Median Frequency of EMG Signal to Determine Muscle Force based on Time- dependent Power Spectrum
+
     :param data:    ndarray, shape (n_channels, n_times)
     :param sfreq:   采样频率
     :param band:    对应频带
-    :return:
+    :return:        ndarray, shape (n_channels, band_num)
+    reference:
+    ---------------
+                   [1] Gudmundsson S, Runarsson T P, Sigurdsson S. Automatic sleep staging using support vector machines with posterior probability estimates
+                       [C]//International Conference on Computational Intelligence for Modelling, Control and Automation and International Conference on Intelligent Agents,
+                       Web Technologies and Internet Commerce (CIMCA-IAWTIC'06). IEEE, 2005, 2: 366-372.
+                       （默认band参考论文）
+                   [2] Thongpanja S, Phinyomark A, Phukpattaranont P, et al. Mean and median frequency of EMG signal to determine muscle force based on
+                       time-dependent power spectrum[J]. Elektronika ir Elektrotechnika, 2013, 19(3): 51-56.
+                       (Median_Frequency定义参考）
     '''
     n_channel, n_times = data.shape
     band_num = band.shape[0]
@@ -393,7 +429,9 @@ def compute_Itakura_Distance(data,baseline_data=None,dist='square', options={'ma
                                  If True, the optimal path is returned.
 
     :return:                     ndarray shape (n_channels, ) Itakura_distance for every channel
-    ex:                          rng = np.random.RandomState(42)
+    ex:
+    ------------
+                                 rng = np.random.RandomState(42)
                                  n_epochs, n_channels, n_times = 2,2,2000
                                  rng_ = np.random.RandomState(43)
                                  data1 = rng.randn(n_epochs, n_channels, n_times)
