@@ -11,13 +11,14 @@ class Feature:
                                   'spect_slope', 'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
                                   'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
 
-    def __init__(self, data=None, sfreq=250, selected_funcs=None, params=None, n_jobs=1, memory=None):
+    def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,
+                 return_as_df=False):
         if data is None:
             self.features = None
             self.feature_names = None
             return
         funcs, feature_names = self.get_funcs(selected_funcs)
-        features = extract_features(data, sfreq, funcs, params, n_jobs, memory)
+        features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
         self.features = rearrange(features, 'b (channel feature) -> b channel feature',
                                        channel=data.shape[1])
         self.feature_names = feature_names
@@ -38,6 +39,7 @@ class Feature:
                 selected_funcs[i] = (each, eval('compute_' + each))
         # 获取自定义的特征名
         feature_names = []
+        funcs = set(selected_funcs)
         for each in selected_funcs:
             if isinstance(each, tuple):
                 f_name = each[0]
@@ -47,4 +49,4 @@ class Feature:
                 feature_names.append(each)
             else:
                 raise AttributeError
-        return set(selected_funcs), feature_names
+        return funcs, feature_names
