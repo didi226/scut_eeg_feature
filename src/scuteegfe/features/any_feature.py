@@ -4,9 +4,9 @@ from scipy.stats import iqr
 from PyEMD import EMD
 import antropy as ant
 import pywt
+from pyentrp import entropy as ent
 from ..HOSA.conventional.bicoherence import bicoherence
 from pyts.metrics.dtw import dtw
-from pyentrp import entropy as ent
 from scipy import signal
 from scipy.fftpack import fft
 import tftb
@@ -560,3 +560,48 @@ def compute_Petrosian_fd(data):
     :return: ndarray, shape (n_channels,)
     """
     return ant.petrosian_fd(data, axis=1)
+
+
+def compute_perm_entropy(data):
+    """
+    排列熵
+    :param data: ndarray, shape (n_channels, n_times)
+    :return: ndarray, shape (n_channels,)
+    """
+    return np.array([ant.perm_entropy(each_channel, normalize=True) for each_channel in data])
+
+
+def compute_detrended_fluctuation(data):
+    """
+    去趋势波动分析法
+    :param data: ndarray, shape (n_channels, n_times)
+    :return: ndarray, shape (n_channels,)
+    """
+    return np.array([ant.detrended_fluctuation(each_channel) for each_channel in data])
+
+
+def compute_multiscale_entropy(data, sample_length=1, tolerance=None, maxscale=None):
+    """
+    多尺度熵
+    :param maxscale:
+    :param tolerance:
+    :param sample_length:
+    :param data: ndarray, shape (n_channels, n_times)
+    :return: ndarray, shape (n_channels, n_timepoints)
+    """
+    return np.array(
+        [ent.multiscale_entropy
+         (each_channel, sample_length=sample_length, tolerance=tolerance, maxscale=maxscale) for each_channel in data])
+
+
+def compute_multiscale_permutation_entropy(data, m=1, delay=1, scale=1):
+    """
+    多尺度熵
+    :param data: ndarray, shape (n_channels, n_times)
+    :param m:
+    :param delay:
+    :param scale:
+    :return: ndarray, shape (n_channels,)
+    """
+    return np.array([
+        ent.multiscale_permutation_entropy(each_channel, m, delay, scale) for each_channel in data]).reshape(-1)

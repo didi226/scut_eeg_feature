@@ -5,31 +5,32 @@ from ..features.any_feature import *
 
 class Feature:
     mne_defined_funcs = {'mean', 'variance', 'std', 'ptp_amp', 'skewness', 'kurtosis', 'rms', 'quantile',
-                                  'hurst_exp', 'app_entropy', 'samp_entropy', 'decorr_time', 'pow_freq_bands',
-                                  'hjorth_mobility_spect', 'hjorth_complexity_spect', 'hjorth_mobility',
-                                  'hjorth_complexity', 'higuchi_fd', 'katz_fd', 'zero_crossings', 'line_length',
-                                  'spect_slope', 'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
-                                  'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
+                         'hurst_exp', 'app_entropy', 'samp_entropy', 'decorr_time', 'pow_freq_bands',
+                         'hjorth_mobility_spect', 'hjorth_complexity_spect', 'hjorth_mobility',
+                         'hjorth_complexity', 'higuchi_fd', 'katz_fd', 'zero_crossings', 'line_length',
+                         'spect_slope', 'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
+                         'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
 
     def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,
                  return_as_df=False):
         if data is None:
+            print('available features:', self.mne_defined_funcs)
             self.features = None
-            self.feature_names = None
             return
-        funcs, feature_names = self.get_funcs(selected_funcs)
+        funcs, feature_names_order = self.get_funcs(selected_funcs)
         features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
         self.features = rearrange(features, 'b (channel feature) -> b channel feature',
-                                       channel=data.shape[1])
-        self.feature_names = feature_names
+                                  channel=data.shape[1])
+        self.feature_names_order = feature_names_order
+        self.example_data = data[0, 0][None, None]
 
     def __repr__(self):
         if self.features is None:
             return 'you should input the data'
         else:
             n_epochs, n_channels, n_features = self.features.shape
-            return str(n_epochs)+'(epochs) x '+str(n_channels)+'(channels) x '+str(n_features)+'(features)'\
-                    + '\nfeature names: ' + str(self.feature_names)
+            return str(n_epochs) + '(epochs) x ' + str(n_channels) + '(channels) x ' + str(n_features) + '(features)' \
+                   + '\nfeature names: ' + str(self.feature_names)
 
     def get_funcs(self, selected_funcs):
         # 获取自定义的特征分解函数
@@ -38,14 +39,38 @@ class Feature:
             if not {each}.issubset(self.mne_defined_funcs):
                 selected_funcs[i] = (each, eval('compute_' + each))
         # 获取自定义的特征名
-        feature_names = []
+        feature_names_order = []
+        funcs = set(selected_funcs)
         for each in selected_funcs:
             if isinstance(each, tuple):
                 f_name = each[0]
                 assert isinstance(f_name, str)
-                feature_names.append(each[0])
+                feature_names_order.append(each[0])
             elif isinstance(each, str):
-                feature_names.append(each)
+                feature_names_order.append(each)
             else:
                 raise AttributeError
-        return set(selected_funcs), feature_names
+        return funcs, feature_names_order
+
+    @property
+    def feature_names(self):
+        feature_names = []
+        feature_shapes = []
+        for each_fea in self.feature_names_order:
+            fea_ = Feature(self.example_data, selected_funcs={each_fea}, funcs_params=None)
+            fea_shape = fea_.features.shape[2]
+            feature_names.append(each_fea)
+            feature_shapes.append(fea_shape)
+            # print(each_fea, fea_shape)
+
+        feature_indexs = []
+        for i, each_fea in enumerate(feature_names):
+            if int(feature_shapes[i]) > 1:
+                fea_sub_name = []
+                for each in range(int(feature_shapes[i])):
+                    fea_sub_name.append(each_fea + (str(each)))
+                feature_indexs.extend(fea_sub_name)
+            else:
+                feature_indexs.extend([each_fea])
+        return np.array(feature_indexs)
+

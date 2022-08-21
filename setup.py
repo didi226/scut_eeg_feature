@@ -27,5 +27,8 @@ setuptools.setup(
         'pyentrp',
         'tftb',
         'statsmodels'
+        'scipy',
+        'emd-signal',
+        'pyentrp'
     ],
 )
