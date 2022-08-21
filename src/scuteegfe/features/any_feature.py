@@ -9,7 +9,6 @@ from pyts.metrics.dtw import dtw
 from pyentrp import entropy as ent
 from scipy import signal
 from scipy.fftpack import fft
-from scipy.fft import fftfreq
 import tftb
 from statsmodels.tsa.arima.model import ARIMA
 
@@ -188,7 +187,7 @@ def compute_Median_Frequency(data,sfreq=250,
     return feature
 def band_Median_Frequency(Pxx, f, band=None):
     """
-    Feature extraction of fixed frequency band
+     Feature extraction of fixed frequency band
     :param Pxx:  frequency band parameter
     :param f:    frequency range
     :param band: selected frequency band
@@ -381,11 +380,12 @@ def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None
                     if x is a matrix, overlap is set to 0.
     :return:        ndarray shape (n_channels, nfft*nfft)
     ex:
-                    rng = np.random.RandomState(42)
-                    n_epochs, n_channels, n_times = 2,2,250
-                    X = rng.randn(n_epochs, n_channels, n_times)
-                    feat=Feature(X,sfreq=250,selected_funcs={'hosa_bicoherence'})
-                    bic=feat.features.reshape((n_epochs,n_channels,128,128))
+    -------------
+        rng = np.random.RandomState(42)
+        n_epochs, n_channels, n_times = 2,2,250
+        X = rng.randn(n_epochs, n_channels, n_times)
+        feat=Feature(X,sfreq=250,selected_funcs={'hosa_bicoherence'})
+        bic=feat.features.reshape((n_epochs,n_channels,128,128))
     '''
     n_channel,n_times=data.shape
     feature=[]

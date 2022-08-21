@@ -21,10 +21,11 @@ setuptools.setup(
         'mne_features',
         'EMD-signal',
         'scipy',
-        'PyWavelets'
-        'pyts'
-        'antropy'
-        'pyentrp'
-        'tftb'
+        'PyWavelets',
+        'pyts',
+        'antropy',
+        'pyentrp',
+        'tftb',
+        'statsmodels'
     ],
 )
