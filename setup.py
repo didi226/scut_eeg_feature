@@ -26,7 +26,7 @@ setuptools.setup(
         'antropy',
         'pyentrp',
         'tftb',
-        'statsmodels'
+        'statsmodels',
         'scipy',
         'emd-signal',
         'pyentrp'

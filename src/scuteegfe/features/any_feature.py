@@ -13,6 +13,7 @@ import tftb
 from statsmodels.tsa.arima.model import ARIMA
 
 
+
 def compute_FDA(data, sfreq=250, win_times=1):
     """
     Detrended fluctuation analysis
