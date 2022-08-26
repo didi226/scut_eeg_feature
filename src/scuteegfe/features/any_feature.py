@@ -11,6 +11,7 @@ from scipy import signal
 from scipy.fftpack import fft
 import tftb
 from statsmodels.tsa.arima.model import ARIMA
+from pactools.comodulogram import Comodulogram
 
 
 
@@ -307,7 +308,7 @@ def compute_Renyi_Entropy(data, sfreq=250, win_times=1,alpha=2):
     tallis熵是Shannon(或Boltzmann-Gibbs)熵在熵非扩展情况下的推广
     :param data: ndarray, shape (n_channels, n_times)
     :param data: win_times  窗口时间
-    :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
+    :return:     ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
     """
     win_len = sfreq * win_times
 
@@ -606,3 +607,75 @@ def compute_multiscale_permutation_entropy(data, m=1, delay=1, scale=1):
     """
     return np.array([
         ent.multiscale_permutation_entropy(each_channel, m, delay, scale) for each_channel in data]).reshape(-1)
+
+
+
+def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],[8,10], [10,13], [13,20], [20,30], [30,45]]),
+                 mode='eeg_rhythm', low_fq_range=None, low_fq_width=2., high_fq_range='auto',
+                 high_fq_width='auto', method='tort', n_surrogates=0,n_jobs=1):
+    """
+    Args:
+        data:                    ndarray, shape (n_channels, n_times)
+        sfreq:                   freq of time signal
+        band:                    ndarray shape (fea_num,2) [fre_low, frre_high]      带通滤波器组参数
+        mode:                    'eeg_rhythm'   计算EEG对应节律频率耦合
+                                 ’Fixed_width‘  计算频带长度固定的频率耦合
+        ’Fixed_width‘ 情况下有意义的参数：
+                                    low_fq_range:    array or list
+                                                     List of filtering frequencies (phase signal)
+                                    low_fq_width:    float
+                                                     Bandwidth of the band-pass filter (phase signal)
+                                    high_fq_range:   array or list or 'auto'
+                                                     List of filtering frequencies (amplitude signal)
+                                                     If 'auto', it uses np.linspace(max(low_fq_range), fs / 2.0, 40).
+                                    high_fq_width:   float or 'auto'
+                                                     Bandwidth of the band-pass filter (amplitude signal)
+                                                      If 'auto', it uses 2 * max(low_fq_range).
+        method:              string or DAR instance
+                              Modulation index method:
+
+                            - String in ('ozkurt', 'canolty', 'tort', 'penny', ), for a PAC
+                                estimation based on filtering and using the Hilbert transform.
+                            - String in ('vanwijk', ) for a joint AAC and PAC estimation
+                                based on filtering and using the Hilbert transform.
+                            - String in ('sigl', 'nagashima', 'hagihira', 'bispectrum', ), for
+                                a PAC estimation based on the bicoherence.
+                            - String in ('colgin', ) for a PAC estimation
+                                and in ('jiang', ) for a PAC directionality estimation,
+                                based on filtering and computing coherence.
+                            - String in ('duprelatour', ) or a DAR instance, for a PAC estimation
+                                based on a driven autoregressive model.
+        n_surrogates:   int
+                        Number of surrogates computed for the z-score
+                        If n_surrogates <= 1, the z-score is not computed.
+        n_jobs:         Number of jobs to use in parallel computations.
+                        Recquires scikit-learn installed.
+    Returns:            feature：  ndarray shape (n_channel,band_num,band_num)
+                                   or  (n_channel,low_fq_range.shape[0],high_fq_range.shape[0])
+    ex:
+    """
+    n_channel, n_times = data.shape
+    if mode=='eeg_rhythm':
+        band_num = band.shape[0]
+        feature = np.zeros((n_channel, band_num, band_num))
+        for i_band in range(band_num):
+            i_center_fq = (band[i_band, 0] + band[i_band, 1]) / 2
+            i_fq_width = band[i_band, 1] - band[i_band, 0]
+            for j_band in range(band_num):
+                    j_center_fq = (band[j_band, 0] + band[j_band, 1]) / 2
+                    j_fq_width = band[j_band, 1] - band[j_band, 0]
+                    c = Comodulogram(fs=sfreq, low_fq_range=np.array(i_center_fq), low_fq_width=i_fq_width,
+                                     high_fq_range=np.array(j_center_fq),high_fq_width=j_fq_width,method=method, n_surrogates=n_surrogates,n_jobs=n_jobs)
+                    for N_channel in range(n_channel):
+                      sig=data[N_channel,:]
+                      feature[N_channel,i_band,j_band]=c.fit(sig).comod_
+        feature = feature.reshape(-1)
+    if mode=='Fixed_width':
+        feature_=np.zeros((n_channel,low_fq_range.shape[0],high_fq_range.shape[0]))
+        c = Comodulogram(fs=sfreq, low_fq_range=low_fq_range, low_fq_width=low_fq_width,
+                         high_fq_range=high_fq_range, high_fq_width=high_fq_width,method=method, n_surrogates=n_surrogates,n_jobs=n_jobs)
+        for N_channel in range(n_channel):
+            sig = data[N_channel, :]
+            feature_[N_channel,:,:]=c.fit(sig).comod_
+        feature=feature_.reshape(-1)
+    return feature
