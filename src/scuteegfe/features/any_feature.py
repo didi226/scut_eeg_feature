@@ -495,6 +495,7 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
             section_data = data[channel, section * time_sec:(section + 1) * time_sec]
             spec, f = imp_extract_wavelet(section_data=section_data, Fs=sfreq, time_sec=time_sec, wavelet_name=wavelet_name)
             section_de[:, section] = band_DE(spec, f, Par_ratios=m_Par_ratios, band=band)
+        section_de=Processing_inf_nan(section_de)
         if Average:
             de_mean = np.sum(section_de, axis=1);
         else:
@@ -532,7 +533,12 @@ def band_DE(Pxx, f, Par_ratios=1, band=None):
         san_D = psd
     return san_D
 
-
+def Processing_inf_nan(data):
+    data_inf = np.isinf(data)
+    data[data_inf] = 0
+    data_nan = np.isnan(data)
+    data[data_nan] = np.max(data)
+    return data
 
 def compute_test2(data):
     return np.mean(data, axis=-1)

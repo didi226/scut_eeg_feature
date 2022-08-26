@@ -29,6 +29,7 @@ setuptools.setup(
         'statsmodels',
         'scipy',
         'emd-signal',
-        'pyentrp'
+        'pyentrp',
+        'pactools'
     ],
 )
