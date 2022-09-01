@@ -9,20 +9,36 @@ class Feature:
                          'hjorth_mobility_spect', 'hjorth_complexity_spect', 'hjorth_mobility',
                          'hjorth_complexity', 'higuchi_fd', 'katz_fd', 'zero_crossings', 'line_length',
                          'spect_slope', 'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
-                         'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
+                         'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy', 'decorr_time'}
 
     def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,
                  return_as_df=False):
+        """
+        计算特征
+
+        :param data: ndarray, (n_samples, n_channels, n_features)
+        :param sfreq: 采样频率
+        :param selected_funcs: 要计算的特征
+        :param funcs_params: 参数
+        :param n_jobs: 进程数
+        :param ch_names: 通道名
+        :param return_as_df: 以pandas.Dataframe格式输出
+        """
         if data is None:
             print('available features:', self.mne_defined_funcs)
             self.features = None
             return
         funcs, feature_names_order = self.get_funcs(selected_funcs)
-        features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
-        self.features = rearrange(features, 'b (channel feature) -> b channel feature',
-                                  channel=data.shape[1])
         self.feature_names_order = feature_names_order
         self.example_data = data[0, 0][None, None]
+        self.funcs_params = funcs_params
+
+        features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
+        if return_as_df:
+            self.features = features
+
+        self.features = rearrange(features, 'b (channel feature) -> b channel feature',
+                                  channel=data.shape[1])
 
     def __repr__(self):
         if self.features is None:
@@ -57,11 +73,23 @@ class Feature:
         feature_names = []
         feature_shapes = []
         for each_fea in self.feature_names_order:
-            fea_ = Feature(self.example_data, selected_funcs={each_fea}, funcs_params=None)
+            try:
+                params = list(self.funcs_params.keys())
+                matching_params = []
+                for each_param in params:
+                    match = each_param.startswith(each_fea)
+                    if match:
+                        matching_params.append(each_param)
+                param_dict = {}
+                for each_param in matching_params:
+                    param = {each_param: self.funcs_params[each_param]}
+                    param_dict.update(param)
+            except Exception as e:
+                param_dict = None
+            fea_ = Feature(self.example_data, selected_funcs={each_fea}, funcs_params=param_dict)
             fea_shape = fea_.features.shape[2]
             feature_names.append(each_fea)
             feature_shapes.append(fea_shape)
-            # print(each_fea, fea_shape)
 
         feature_indexs = []
         for i, each_fea in enumerate(feature_names):
@@ -73,4 +101,3 @@ class Feature:
             else:
                 feature_indexs.extend([each_fea])
         return np.array(feature_indexs)
-
