@@ -41,14 +41,9 @@ class Feature:
         self.funcs_params = funcs_params
 
         features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
-<<<<<<< HEAD
-        self.features = rearrange(features, 'b (channel feature) -> b channel feature',
-=======
         if return_as_df:
             self.features = features
-
         self.features = rearrange(features, 'b (feature channel) -> b channel feature',
->>>>>>> gitte_fe/master
                                   channel=data.shape[1])
 
     def __repr__(self):
