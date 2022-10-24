@@ -11,8 +11,26 @@ class Feature:
                          'spect_slope', 'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
                          'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
 
+    funcs_subset_no_spect_slope = {'mean', 'variance', 'std', 'ptp_amp', 'skewness', 'kurtosis', 'rms', 'quantile',
+                                   'hurst_exp', 'app_entropy', 'samp_entropy', 'decorr_time', 'pow_freq_bands',
+                                   'hjorth_mobility_spect', 'hjorth_complexity_spect', 'hjorth_mobility',
+                                   'hjorth_complexity', 'higuchi_fd', 'katz_fd', 'zero_crossings', 'line_length',
+                                   'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
+                                   'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
+
     def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,
                  return_as_df=False):
+        """
+        计算特征
+
+        :param data: ndarray, (n_samples, n_channels, n_features)
+        :param sfreq: 采样频率
+        :param selected_funcs: 要计算的特征
+        :param funcs_params: 参数
+        :param n_jobs: 进程数
+        :param ch_names: 通道名
+        :param return_as_df: 以pandas.Dataframe格式输出
+        """
         if data is None:
             print('available features:', self.mne_defined_funcs)
             self.features = None
@@ -23,7 +41,14 @@ class Feature:
         self.funcs_params = funcs_params
 
         features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
+<<<<<<< HEAD
         self.features = rearrange(features, 'b (channel feature) -> b channel feature',
+=======
+        if return_as_df:
+            self.features = features
+
+        self.features = rearrange(features, 'b (feature channel) -> b channel feature',
+>>>>>>> gitte_fe/master
                                   channel=data.shape[1])
 
     def __repr__(self):
