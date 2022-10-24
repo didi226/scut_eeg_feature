@@ -36,6 +36,7 @@ class Feature:
             self.features = None
             return
         funcs, feature_names_order = self.get_funcs(selected_funcs)
+        self.funcs = funcs
         self.feature_names_order = feature_names_order
         self.example_data = data[0, 0][None, None]
         self.funcs_params = funcs_params
@@ -64,7 +65,7 @@ class Feature:
         # 获取自定义的特征名
         feature_names_order = []
         funcs = set(selected_funcs)
-        for each in selected_funcs:
+        for each in funcs:
             if isinstance(each, tuple):
                 f_name = each[0]
                 assert isinstance(f_name, str)
