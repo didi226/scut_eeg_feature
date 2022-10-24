@@ -122,6 +122,8 @@ class Feature:
         Feature1: Feature instance
         Feature2: Feature instance
         ch_names: list, 通道名
+        sub_type1: 所属数据集类型描述
+        sub_type2: 所属数据集类型描述
 
         Returns
         -------
@@ -185,6 +187,9 @@ class Feature:
         assert Feature1.features is not None and Feature2.features is not None
         from scipy import stats
 
+        # TODO 这里默认Feature1和Feature2的特征顺序一致，如果不一致，将会有问题
+        assert (Feature1.feature_names == Feature2.feature_names).all() == True, \
+            print('feature not match:', Feature1.feature_names, Feature2.features)
         sta, p = stats.ttest_ind(Feature1.features, Feature2.features)
         log10_p = np.log10(p)
         thresh = np.log10(0.05)
