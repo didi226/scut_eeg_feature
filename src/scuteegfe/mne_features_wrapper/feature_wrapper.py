@@ -1,6 +1,9 @@
 from mne_features.feature_extraction import extract_features
 from einops import rearrange
 from ..features.any_feature import *
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 class Feature:
@@ -109,3 +112,87 @@ class Feature:
             else:
                 feature_indexs.extend([each_fea])
         return np.array(feature_indexs)
+
+    @staticmethod
+    def plot_feature_sns(Feature1, Feature2, ch_names, sub_type1='type1', sub_type2='type2'):
+        """
+
+        Parameters
+        ----------
+        Feature1: Feature instance
+        Feature2: Feature instance
+        ch_names: list, 通道名
+
+        Returns
+        -------
+
+        """
+        fea1 = Feature1.features
+        fea2 = Feature2.features
+
+        # 归一化
+        fea_concat = np.concatenate([fea1, fea2], axis=0)
+        std = fea_concat.std(axis=0)
+        mean = fea_concat.mean(axis=0)
+        std[std == 0] = 1e-20
+        mean[np.isnan(mean)] = 0
+        fea_concat = (fea_concat - mean[None, :, :]) / (std[None, :, :])
+        fea1 = fea_concat[:fea1.shape[0]]
+        fea2 = fea_concat[fea1.shape[0]:]
+
+        # 构造DataFrame
+        df1 = Feature1.feature_df2plot(fea1, Feature1.feature_names, ch_names, sub_type=sub_type1)
+        df2 = Feature2.feature_df2plot(fea2, Feature2.feature_names, ch_names, sub_type=sub_type2)
+        df2plot = pd.concat([df1, df2])
+
+        # 画图
+        for ch in ch_names:
+            plt.figure(figsize=[100, 10])
+            sns.boxplot(data=df2plot.query('Channel=="' + ch + '"'), x='features', y='Value', hue='type')
+            plt.title(ch)
+            plt.show()
+
+    @staticmethod
+    def feature_df2plot(features, feature_names, ch_names, sub_type='sub_type_1'):
+        from einops import repeat, rearrange
+        fea_names = repeat(np.array(feature_names), 'n_f -> (n_epoch n_ch n_f)', n_epoch=features.shape[0],
+                           n_ch=features.shape[1])
+        ch_names = repeat(np.array(ch_names), 'n_ch -> (n_epoch n_ch n_f)', n_epoch=features.shape[0],
+                          n_f=features.shape[2])
+        values = rearrange(features, 'n_epoch n_ch n_f -> (n_epoch n_ch n_f)')
+
+        return pd.DataFrame({
+            'features': fea_names,
+            'Channel': ch_names,
+            'type': sub_type,
+            'Value': values
+        })
+
+    @staticmethod
+    def ttest_feature(Feature1, Feature2, ch_names):
+        """
+        run ttest and visualize Pvalue using heatmap
+        Parameters
+        ----------
+        Feature1: Feature instance
+        Feature2: Feature instance
+        ch_names: list, 通道名
+
+        Returns
+        -------
+
+        """
+        assert Feature1.features is not None and Feature2.features is not None
+        from scipy import stats
+
+        sta, p = stats.ttest_ind(Feature1.features, Feature2.features)
+        log10_p = np.log10(p)
+        thresh = np.log10(0.05)
+        nan_index = np.isnan(p)
+        if nan_index.sum() != 0:
+            p[nan_index] = p[~nan_index].mean(axis=0)
+
+        plt.figure(figsize=(16, 4))
+        sns.heatmap(log10_p, square=True, center=thresh, cmap='coolwarm', vmin=-4, vmax=0,
+                    yticklabels=ch_names, xticklabels=Feature1.feature_names)
+        return sta, p
