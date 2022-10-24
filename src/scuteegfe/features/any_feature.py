@@ -199,15 +199,18 @@ def band_Median_Frequency(Pxx, f, band=None):
     fea_num=int(band.shape[0])
     Median_Frequency=np.empty((fea_num));
     for i in range(fea_num):
+        psd_m = 0
         idx = np.where((f >= band[i, 0]) & (f <= band[i, 1]))[0]
-        psd= np.sum(np.multiply(Pxx[idx], Pxx[idx]))
-        psd_m=0
+        psd= np.sum(Pxx[idx]**2)
+        psd_half=psd/2
+        Median_Frequency[i] = band[i, 0]
+
         for i_idx in idx:
-            if(psd_m<psd/2):
-              psd_m=+np.multiply(Pxx[i_idx], Pxx[i_idx])
+            if(psd_m < psd_half):
+              psd_m=psd_m+np.multiply(Pxx[i_idx], Pxx[i_idx])
             else:
                 Median_Frequency[i]=f[i_idx]
-                break;
+                break
 
     return Median_Frequency
 
