@@ -207,7 +207,7 @@ def band_Median_Frequency(Pxx, f, band=None):
 
         for i_idx in idx:
             if(psd_m < psd_half):
-              psd_m=psd_m+np.multiply(Pxx[i_idx], Pxx[i_idx])
+                psd_m=psd_m+np.multiply(Pxx[i_idx], Pxx[i_idx])
             else:
                 Median_Frequency[i]=f[i_idx]
                 break
