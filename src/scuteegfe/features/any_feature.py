@@ -12,6 +12,7 @@ from scipy.fftpack import fft
 import tftb
 from statsmodels.tsa.arima.model import ARIMA
 from pactools.comodulogram import Comodulogram
+from nilearn.connectome import ConnectivityMeasure
 
 
 
@@ -342,7 +343,7 @@ def compute_Tsallis_Entropy(data, sfreq=250, win_times=1,alpha=2):
 
 def compute_Hilbert_abs(data):
     """
-    希尔伯特模
+    希尔伯特包络
     :param data: ndarray, shape (n_channels, n_times)
     :return: ndarray, shape (n_channels,)
     """
@@ -501,6 +502,7 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
         else:
             de_mean = section_de;
         if m_entropy:
+            de_mean[de_mean == 0] = 1e-6
             de_mean = np.multiply(de_mean, np.log(de_mean));
         de[channel, :] = de_mean
     feature = de.reshape(-1)
@@ -528,6 +530,8 @@ def band_DE(Pxx, f, Par_ratios=1, band=None):
         idx = np.where((f >= band[i, 0]) & (f <= band[i, 1]))
         psd[i] = np.sum(np.multiply(Pxx[idx], Pxx[idx]))
     if Par_ratios == 1:
+        if psd[1]==0:
+            psd[1]=1e-6
         san_D = np.hstack((psd, psd[2] / psd[1], psd[3] / psd[1]))
     else:
         san_D = psd
@@ -543,14 +547,6 @@ def Processing_inf_nan(data):
 def compute_test2(data):
     return np.mean(data, axis=-1)
 
-
-def compute_IQR(data):
-    """
-    四分位数
-    :param data: ndarray, shape (n_channels, n_times)
-    :return: ndarray, shape (n_channels,)
-    """
-    return iqr(data, axis=1)
 
 
 def compute_Num_zero_crossings(data):
@@ -685,3 +681,24 @@ def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],
             feature_[N_channel,:,:]=c.fit(sig).comod_
         feature=feature_.reshape(-1)
     return feature
+
+
+# def compute_correlation_matrix(data,sfreq=250):
+#     '''
+#     Args:
+#         data:                    ndarray, shape (n_channels, n_times)
+#         data                     一般对应一种标签    时间跨度一般在30s到1min之间
+#
+#         sfreq:                   freq of time signal
+#         band:                    ndarray shape (2,) [fre_low, frre_high]      带通滤波器组参数
+#
+#     Returns:
+#
+#     '''
+#
+#     connectivity_measure = ConnectivityMeasure(kind='partial correlation')
+#     partial_correlation_matrix_0 = connectivity_measure.fit_transform(time_series_0)
+#
+#
+#
+#     return
