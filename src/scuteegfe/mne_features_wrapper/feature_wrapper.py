@@ -118,21 +118,19 @@ class Feature:
         """
         获取特征向量数组features 对原特征向量数组features在第0个维度上进行索引和切片
         Args:
-            n_sample_list:   slice/int/None
+            n_sample_list:
 
         Returns: fea         narray   原特征数据或者切片后的特征数据
         """
         if n_sample_list is None:
               fea= self.features
               return fea
-        if isinstance(n_sample_list, slice) or isinstance(n_sample_list, numbers.Integral):
+        else:
             dim = self.features.ndim
             fea = self.features[n_sample_list,:,:]
             if fea.ndim<dim:
                 fea=fea[None,:]
             return fea
-        else:
-             print( 'indices must be integers')
 
     def copy(self):
         """
@@ -149,18 +147,16 @@ class Feature:
         """
         对类Feature在采样维度上进行切片，.features 切片 其他属性保持不变
         Args:
-            item: slice/int
+            item:
 
         Returns:
            a new instance of  Feature with new .features
         """
         cls = type(self)
-        if isinstance(item, slice) or isinstance(item, numbers.Integral):
-            Feature = self.copy()
-            Feature.features = self.get_data(item)
-            return Feature
-        else:
-            print({cls.__name__} ,'indices must be integers')
+        Feature = self.copy()
+        Feature.features = self.get_data(item)
+        return Feature
+
 
 
 

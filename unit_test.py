@@ -1,11 +1,46 @@
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
-
 from scuteegfe import Feature
 
+from mne.datasets import eegbci
+from mne import Epochs, pick_types, events_from_annotations
+from mne.channels import make_standard_montage
+from mne.io import concatenate_raws, read_raw_edf
+
+
+def get_data_example_motor_image():
+    tmin, tmax = -1., 4.
+    event_id = dict(hands=2, feet=3)
+    subject = 1
+    runs = [6, 10, 14]  # motor imagery: hands vs feet
+    raw_fnames = eegbci.load_data(subject, runs)
+    raw = concatenate_raws([read_raw_edf(f, preload=True) for f in raw_fnames])
+    eegbci.standardize(raw)  # set channel names
+    montage = make_standard_montage('standard_1005')
+    raw.set_montage(montage)
+
+    # Apply band-pass filter
+    raw.filter(7., 30., fir_design='firwin', skip_by_annotation='edge')
+
+    events, _ = events_from_annotations(raw, event_id=dict(T1=2, T2=3))
+
+    picks = pick_types(raw.info, meg=False, eeg=True, stim=False, eog=False,
+                       exclude='bads')
+
+    # Read epochs (train will be done only between 1 and 2s)
+    # Testing will be done with a running classifier
+    epochs = Epochs(raw, events, event_id, tmin, tmax, proj=True, picks=picks,
+                    baseline=None, preload=True)
+    epochs_train = epochs.copy().crop(tmin=1., tmax=2.)
+    labels = epochs.events[:, -1] - 2
+    data = epochs.get_data()
+    print(data.shape)
+ #   self.assertTrue(data.ndim == 3)
+    return data, labels
 
 class MyTestCase(unittest.TestCase):
+
     def test_feature_name_order(self):
         # make fake data
         data = np.empty((10, 5, 100))
@@ -40,13 +75,10 @@ class MyTestCase(unittest.TestCase):
         plt.show()
         self.assertTrue(True)
 
-    def test_get_item(self):
-        rng = np.random.RandomState(42)
-        n_epochs, n_channels, n_times = 50, 5, 2500
-        data = rng.randn(n_epochs, n_channels, n_times)
+    def test_get_data(self):
+        data, _ = get_data_example_motor_image()
         fea = Feature(data, selected_funcs=['mean','std'])
-        n_sample_list = np.array([1, 2, 3, 4, 5])
-        print(n_sample_list.shape)
+        n_sample_list=np.arange(3,7)
         fea_part=fea.get_data(n_sample_list=n_sample_list)
         print(fea_part.shape)
         self.assertTrue((fea_part == fea.features[n_sample_list]).all())
@@ -55,9 +87,8 @@ class MyTestCase(unittest.TestCase):
 
 
     def test_get_item(self):
-        rng = np.random.RandomState(42)
-        n_epochs, n_channels, n_times = 50, 5, 2500
-        data = rng.randn(n_epochs, n_channels, n_times)
+        data,_=get_data_example_motor_image()
+        #(45, 64, 801)
         fea = Feature(data, selected_funcs=['mean','std'])
         # test int
         n_sample_list =1
@@ -81,7 +112,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(fea.features.shape[1] == fea_new_1.features.shape[1])
         self.assertTrue(fea.features.shape[2] == fea_new_1.features.shape[2])
         # test non int
-        fea_new_2 = fea[4.3]
+        #fea_new_2 = fea[4.3]
 
 if __name__ == '__main__':
     unittest.main()
