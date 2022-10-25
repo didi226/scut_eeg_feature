@@ -4,6 +4,8 @@ from ..features.any_feature import *
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from copy import deepcopy
+import numbers
 
 
 class Feature:
@@ -111,6 +113,59 @@ class Feature:
             else:
                 feature_indexs.extend([each_fea])
         return np.array(feature_indexs)
+
+    def get_data(self,n_sample_list=None):
+        """
+        获取特征向量数组features 对原特征向量数组features在第0个维度上进行索引和切片
+        Args:
+            n_sample_list:   slice/int/None
+
+        Returns: fea         narray   原特征数据或者切片后的特征数据
+        """
+        if n_sample_list is None:
+              fea= self.features
+              return fea
+        if isinstance(n_sample_list, slice) or isinstance(n_sample_list, numbers.Integral):
+            dim = self.features.ndim
+            fea = self.features[n_sample_list,:,:]
+            if fea.ndim<dim:
+                fea=fea[None,:]
+            return fea
+        else:
+             print( 'indices must be integers')
+
+    def copy(self):
+        """
+        Copy the instance of Feature.
+        Returns
+        -------
+        Feature : instance of Feature
+            A copy of the object.
+        """
+        Feature = deepcopy(self)
+        return Feature
+
+    def __getitem__(self, item):
+        """
+        对类Feature在采样维度上进行切片，.features 切片 其他属性保持不变
+        Args:
+            item: slice/int
+
+        Returns:
+           a new instance of  Feature with new .features
+        """
+        cls = type(self)
+        if isinstance(item, slice) or isinstance(item, numbers.Integral):
+            Feature = self.copy()
+            Feature.features = self.get_data(item)
+            return Feature
+        else:
+            print({cls.__name__} ,'indices must be integers')
+
+
+
+
+
 
     @staticmethod
     def plot_feature_sns(Feature1, Feature2, ch_names, sub_type1='type1', sub_type2='type2'):

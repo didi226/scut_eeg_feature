@@ -40,6 +40,49 @@ class MyTestCase(unittest.TestCase):
         plt.show()
         self.assertTrue(True)
 
+    def test_get_item(self):
+        rng = np.random.RandomState(42)
+        n_epochs, n_channels, n_times = 50, 5, 2500
+        data = rng.randn(n_epochs, n_channels, n_times)
+        fea = Feature(data, selected_funcs=['mean','std'])
+        n_sample_list = np.array([1, 2, 3, 4, 5])
+        print(n_sample_list.shape)
+        fea_part=fea.get_data(n_sample_list=n_sample_list)
+        print(fea_part.shape)
+        self.assertTrue((fea_part == fea.features[n_sample_list]).all())
+        fea_part_0=fea.get_data(n_sample_list=1)
+        self.assertTrue(fea_part_0.ndim==fea.features.ndim)
+
+
+    def test_get_item(self):
+        rng = np.random.RandomState(42)
+        n_epochs, n_channels, n_times = 50, 5, 2500
+        data = rng.randn(n_epochs, n_channels, n_times)
+        fea = Feature(data, selected_funcs=['mean','std'])
+        # test int
+        n_sample_list =1
+        fea_new=fea[n_sample_list]
+        print(fea_new.feature_names)
+        self.assertTrue((fea_new.feature_names== fea.feature_names).all())
+        self.assertTrue(fea_new.funcs == fea.funcs)
+        self.assertTrue(fea_new.funcs_params == fea.funcs_params)
+        print(fea_new.features.shape)
+        print(fea.features.shape)
+        self.assertTrue(1==fea_new.features.shape[0])
+        self.assertTrue(fea.features.shape[1]== fea_new.features.shape[1])
+        self.assertTrue(fea.features.shape[2]== fea_new.features.shape[2])
+        #test slice
+        fea_new_1=fea[4:10]
+        self.assertTrue((fea_new_1.feature_names == fea.feature_names).all())
+        self.assertTrue(fea_new_1.funcs == fea.funcs)
+        self.assertTrue(fea_new_1.funcs_params == fea.funcs_params)
+        print(fea_new_1.features.shape)
+        self.assertTrue(6== fea_new_1.features.shape[0])
+        self.assertTrue(fea.features.shape[1] == fea_new_1.features.shape[1])
+        self.assertTrue(fea.features.shape[2] == fea_new_1.features.shape[2])
+        # test non int
+        fea_new_2 = fea[4.3]
 
 if __name__ == '__main__':
     unittest.main()
+
