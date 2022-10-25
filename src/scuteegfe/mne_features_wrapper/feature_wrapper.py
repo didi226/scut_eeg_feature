@@ -160,9 +160,6 @@ class Feature:
 
 
 
-
-
-
     @staticmethod
     def plot_feature_sns(Feature1, Feature2, ch_names, sub_type1='type1', sub_type2='type2'):
         """

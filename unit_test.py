@@ -7,6 +7,7 @@ from mne.datasets import eegbci
 from mne import Epochs, pick_types, events_from_annotations
 from mne.channels import make_standard_montage
 from mne.io import concatenate_raws, read_raw_edf
+from mne_features.feature_extraction import extract_features
 
 
 def get_data_example_motor_image():
@@ -77,7 +78,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_get_data(self):
         data, _ = get_data_example_motor_image()
-        fea = Feature(data, selected_funcs=['mean','std'])
+        fea = Feature(data,sfreq=160, selected_funcs=['mean','std'])
         n_sample_list=np.arange(3,7)
         fea_part=fea.get_data(n_sample_list=n_sample_list)
         print(fea_part.shape)
@@ -89,7 +90,7 @@ class MyTestCase(unittest.TestCase):
     def test_get_item(self):
         data,_=get_data_example_motor_image()
         #(45, 64, 801)
-        fea = Feature(data, selected_funcs=['mean','std'])
+        fea = Feature(data, sfreq=160,selected_funcs=['mean','std'])
         # test int
         n_sample_list =1
         fea_new=fea[n_sample_list]
@@ -111,8 +112,9 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(6== fea_new_1.features.shape[0])
         self.assertTrue(fea.features.shape[1] == fea_new_1.features.shape[1])
         self.assertTrue(fea.features.shape[2] == fea_new_1.features.shape[2])
-        # test non int
-        #fea_new_2 = fea[4.3]
+        #test non int
+        fea_new_2 = fea[4.3]
+
 
 if __name__ == '__main__':
     unittest.main()
