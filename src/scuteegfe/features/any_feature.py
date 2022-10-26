@@ -142,23 +142,22 @@ def compute_Harmonic_Parameters(data,sfreq=250,
    波参数包括三个参数：  中心频率 (fc) 、带宽 (fr) 和中心频率处的频谱值 (Sfc)
    :param data:      ndarray, shape (n_channels, n_times)
    :param sfreq:     采样频率
-   :param band:      对应的频带
-   :return:          ndarray   shape (n_channels,3)
-                     [中心频率 (fc),带宽 (fr),中心频率处的频谱值 (Sfc)]
-
+   :param band:      对应的频带   中心频率 (fc),带宽 (fr)
+   :return:          ndarray   shape (n_channels,n_band)
+                     中心频率处的频谱值 (Sfc)
    '''
    n_channel, n_times = data.shape
    band_num=band.shape[0]
-   feature=np.zeros((n_channel,band_num,3))
+   feature=np.zeros((n_channel,band_num))
    for i_channel in range(n_channel):
      f_, fft_ = get_fft_values(data[i_channel, :], f_s=sfreq)
      for i_band in range(band_num):
            center_frequency=(band[i_band,0] + band[i_band,1]) / 2
            frequency_band=np.abs(band[i_band,0] - band[i_band,1])
-           feature[i_channel,i_band,0]=center_frequency
-           feature[i_channel, i_band, 1] = frequency_band
+         #  feature[i_channel,i_band,0]=center_frequency
+         #  feature[i_channel, i_band, 1] = frequency_band
            f_idx=find_nearest(f_,center_frequency)
-           feature[i_channel, i_band, 2]=fft_[f_idx]
+           feature[i_channel, i_band]=fft_[f_idx]
    feature = feature.reshape(-1)
    return feature
 def compute_Median_Frequency(data,sfreq=250,
