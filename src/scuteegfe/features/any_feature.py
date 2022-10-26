@@ -33,14 +33,16 @@ def compute_FDA(data, sfreq=250, win_times=1):
             feature[i_channel,i_section]=ant.detrended_fluctuation(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
     feature = feature.reshape(-1)
     return feature
-def compute_Shannon_entropy(data, sfreq=250, win_times=1):
+def compute_Shannon_entropy(data, sfreq=250,round_para=1, win_times=1):
     """
     Shannon_entropy
     香农熵
-    :param data: ndarray, shape (n_channels, n_times)
-    :param data: win_times  窗口时间
-    :return: ndarray, shape (n_channels, section_num)
+    :param data: data        ndarray     shape (n_channels, n_times)
+    :param data: win_times   int         窗口时间
+    :param data: round_para  int         数据有效位数
+    :return:     feature     ndarray     shape (n_channels, section_num)
     """
+    data = np.round(data, round_para)
     win_len = sfreq * win_times
 
     n_channel, n_times = data.shape
@@ -80,6 +82,35 @@ def Tsallis_Entropy(time_series,alpha=2):
     for freq in freq_list:
         ent += freq ** (alpha)
     ent =1/(1-alpha)*(ent-1)
+    return ent
+
+def Renyi_Entropy(time_series,alpha):
+    """Return the Renyi_Entropy of the sample data.
+    Args:
+        time_series: Vector or string of the sample data
+    Returns:
+        The Renyi_Entropy as float value
+    """
+    # Check if string
+    if not isinstance(time_series, str):
+        time_series = list(time_series)
+
+    # Create a frequency data
+    data_set = list(set(time_series))
+    freq_list = []
+    for entry in data_set:
+        counter = 0.
+        for i in time_series:
+            if i == entry:
+                counter += 1
+        freq_list.append(float(counter) / len(time_series))
+
+    # Shannon entropy
+    ent = 0.0
+    for freq in freq_list:
+        ent += freq**(alpha)
+    ent=1/(1-alpha)*np.log2(ent)
+
     return ent
 def compute_ARMA_kalman_filter(data,AR_p=10,MA_q=1):
     '''
@@ -226,34 +257,7 @@ def filter_bank(data,sfreq=250,frequences=None):
         b, a = signal.butter(8, [2*frequences[i_filters,0]/sfreq, 2*frequences[i_filters,1]/sfreq], 'bandpass')  # 配置滤波器 8 表示滤波器的阶数
         filters_data[i_filters, :] = signal.filtfilt(b, a, data)  # data为要过滤的信号
     return filters_data
-def Renyi_Entropy(time_series,alpha):
-    """Return the Renyi_Entropy of the sample data.
-    Args:
-        time_series: Vector or string of the sample data
-    Returns:
-        The Renyi_Entropy as float value
-    """
-    # Check if string
-    if not isinstance(time_series, str):
-        time_series = list(time_series)
 
-    # Create a frequency data
-    data_set = list(set(time_series))
-    freq_list = []
-    for entry in data_set:
-        counter = 0.
-        for i in time_series:
-            if i == entry:
-                counter += 1
-        freq_list.append(float(counter) / len(time_series))
-
-    # Shannon entropy
-    ent = 0.0
-    for freq in freq_list:
-        ent += freq**(alpha)
-    ent=1/(1-alpha)*np.log2(ent)
-
-    return ent
 def compute_Coherence(data,Co_channel=None,
             sfreq=250,band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
     """
@@ -305,14 +309,16 @@ def  compute_WignerVilleDistribution(data,sfreq=250 ):
     feature = feature.reshape(-1)
     return feature
 
-def compute_Renyi_Entropy(data, sfreq=250, win_times=1,alpha=2):
+def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     """
     Renyi_Entropy
     tallis熵是Shannon(或Boltzmann-Gibbs)熵在熵非扩展情况下的推广
-    :param data: ndarray, shape (n_channels, n_times)
-    :param data: win_times  窗口时间
-    :return:     ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
+    :param data: data        ndarray     shape (n_channels, n_times)
+    :param data: win_times   int         窗口时间
+    :param data: round_para  int         数据有效位数
+    :return:     feature     ndarray     shape (n_channels, section_num*EMD_params*EMD_length)
     """
+    data = np.round(data, round_para)
     win_len = sfreq * win_times
 
     n_channel, n_times = data.shape
@@ -323,14 +329,16 @@ def compute_Renyi_Entropy(data, sfreq=250, win_times=1,alpha=2):
             feature[i_channel,i_section]=Renyi_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
     feature = feature.reshape(-1)
     return feature
-def compute_Tsallis_Entropy(data, sfreq=250, win_times=1,alpha=2):
+def compute_Tsallis_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     """
     Tsallis_Entropy
     tallis熵是Shannon(或Boltzmann-Gibbs)熵在熵非扩展情况下的推广
-    :param data: ndarray, shape (n_channels, n_times)
-    :param data: win_times  窗口时间
-    :return: ndarray, shape (n_channels, section_num*EMD_params*EMD_length)
+    :param data:data          ndarray     shape (n_channels, n_times)
+    :param data:win_times     int         窗口时间
+    :param data: round_para   int         数据有效位数
+    :return:feature           ndarray     shape (n_channels, section_num*EMD_params*EMD_length)
     """
+    data = np.round(data, round_para)
     win_len = sfreq * win_times
 
     n_channel, n_times = data.shape
