@@ -82,6 +82,11 @@ class Feature:
         return funcs, feature_names_order
 
     def fix_missing(self):
+        """
+        修复异常值
+        Returns
+        -------
+        """
         from sklearn.impute import SimpleImputer
         imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
 
@@ -99,6 +104,12 @@ class Feature:
         return n_F
 
     def reorder(self):
+        """
+        按首字母排列特征
+        Returns
+        -------
+
+        """
         n_F = copy.deepcopy(self)
         feature_names = self.feature_names
         order = feature_names.argsort()
