@@ -1,4 +1,5 @@
 from mne_features.feature_extraction import extract_features
+import copy
 from einops import rearrange
 from ..features.any_feature import *
 import pandas as pd
@@ -38,6 +39,7 @@ class Feature:
             print('available features:', self.mne_defined_funcs)
             self.features = None
             return
+        self.__feature_names = None
         funcs, feature_names_order = self.get_funcs(selected_funcs)
         self.funcs = funcs
         self.feature_names_order = feature_names_order
@@ -79,8 +81,35 @@ class Feature:
                 raise AttributeError
         return funcs, feature_names_order
 
+    def fix_missing(self):
+        from sklearn.impute import SimpleImputer
+        imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
+
+        feature = np.zeros_like(self.features)
+        for i, each_epoch in enumerate(self.features):
+            try:
+                feature[i] = imp_mean.fit_transform(each_epoch)
+            except Exception as e:
+                print('Can not fix missing value using "mean" method, now try constant method ', e)
+                imp_constant = SimpleImputer(missing_values=np.nan, strategy='constant', fill_value=0)
+                feature[i] = imp_constant.fit_transform(each_epoch)
+
+        n_F = copy.deepcopy(self)
+        n_F.features = feature
+        return n_F
+
+    def reorder(self):
+        n_F = copy.deepcopy(self)
+        feature_names = self.feature_names
+        order = feature_names.argsort()
+        n_F.features = self.features[:, :, order]
+        n_F.feature_names = feature_names[order]
+        return n_F
+
     @property
     def feature_names(self):
+        if self.__feature_names is not None:
+            return self.__feature_names
         feature_names = []
         feature_shapes = []
         for each_fea in self.feature_names_order:
@@ -111,7 +140,12 @@ class Feature:
                 feature_indexs.extend(fea_sub_name)
             else:
                 feature_indexs.extend([each_fea])
-        return np.array(feature_indexs)
+        self.__feature_names = np.array(feature_indexs)
+        return self.__feature_names
+
+    @feature_names.setter
+    def feature_names(self, f_names):
+        self.__feature_names = f_names
 
     @staticmethod
     def plot_feature_sns(Feature1, Feature2, ch_names, sub_type1='type1', sub_type2='type2'):
