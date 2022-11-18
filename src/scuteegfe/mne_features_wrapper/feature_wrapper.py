@@ -23,7 +23,7 @@ class Feature:
                                    'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
 
     def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,
-                 return_as_df=False):
+                 return_as_df=False, log_teager_kaiser_energy=False):
         """
         计算特征
 
@@ -37,21 +37,26 @@ class Feature:
         """
         if data is None:
             print('available features:', self.mne_defined_funcs)
-            self.features = None
+            self.__features = None
             return
         self.__feature_names = None
+        self.__features = None
+        self.log_teager_kaiser_energy = log_teager_kaiser_energy
         funcs, feature_names_order = self.get_funcs(selected_funcs)
         self.funcs = funcs
         self.feature_names_order = feature_names_order
         self.example_data = data[0, 0][None, None]
+        self.n_channel = data.shape[1]
         self.funcs_params = funcs_params
 
         features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
         if return_as_df:
-            self.features = features
+            self.__features_raw = features
 
-        self.features = rearrange(features, 'b (feature channel) -> b channel feature',
-                                  channel=data.shape[1])
+        self.__features_raw = features
+        self.__features = rearrange(self.__features_raw, 'b (feature channel) -> b channel feature',
+                                    channel=self.n_channel)
+        self.__features_fix = False
 
     def __repr__(self):
         if self.features is None:
@@ -110,12 +115,26 @@ class Feature:
         -------
 
         """
-        n_F = copy.deepcopy(self)
+        features = self.features
         feature_names = self.feature_names
         order = feature_names.argsort()
-        n_F.features = self.features[:, :, order]
-        n_F.feature_names = feature_names[order]
+        n_F = copy.deepcopy(self)
+        n_F.__features = features[:, :, order]
+        n_F.__feature_names = feature_names[order]
         return n_F
+
+    @property
+    def features(self):
+        if self.__features_fix is True:
+            return self.__features
+        if np.isin('teager_kaiser_energy0', self.feature_names):
+            self.fix_teager_kaiser_energy(log=self.log_teager_kaiser_energy)
+            self.__features_fix = True
+        return self.__features
+
+    @features.setter
+    def features(self, features):
+        self.__features = features
 
     @property
     def feature_names(self):
@@ -138,7 +157,7 @@ class Feature:
             except Exception as e:
                 param_dict = None
             fea_ = Feature(self.example_data, selected_funcs={each_fea}, funcs_params=param_dict)
-            fea_shape = fea_.features.shape[2]
+            fea_shape = fea_.__features.shape[2]
             feature_names.append(each_fea)
             feature_shapes.append(fea_shape)
 
@@ -246,3 +265,29 @@ class Feature:
         sns.heatmap(log10_p, square=True, center=thresh, cmap='coolwarm', vmin=-4, vmax=0,
                     yticklabels=ch_names, xticklabels=Feature1.feature_names)
         return sta, p
+
+    def fix_teager_kaiser_energy(self, log=True):
+        """
+            mne_features 中，teager_kaiser_energy的特征排列方式其它特征相反，需修复
+        Parameters
+        ----------
+        log: bool, 是否取对数
+
+        Returns
+        -------
+
+        """
+        teager_kaiser_energy_names = ['teager_kaiser_energy' + str(i) for i in
+                                      range(np.char.startswith(self.feature_names, 'teager_kaiser_energy').sum())]
+
+        get_index = lambda source, target: np.argwhere(source == target)[0, 0]
+        reorder = lambda source, target: [get_index(each, target) for each in source]
+        _rearrange_ = lambda features: rearrange(
+            rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
+            'n_sub (n_ch n_fea)-> n_sub n_ch n_fea', n_ch=self.n_channel)
+
+        ind = reorder(teager_kaiser_energy_names, self.feature_names)
+        if log:
+            self.__features[:, :, ind] = np.log10(_rearrange_(self.__features[:, :, ind]))
+        else:
+            self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
