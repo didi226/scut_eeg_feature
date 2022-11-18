@@ -65,14 +65,17 @@ class MyTestCase(unittest.TestCase):
             for ch in range(5):
                 data2[epoch, ch] = np.linspace(ch, ch + epoch + 1, 100) + np.random.randint(-100, 100) * 0.01 + np.sin(
                     np.linspace(-np.pi, np.pi, 100)) + 5
+                if ch == 3:
+                    data2[epoch, ch] = np.zeros(100)
 
-        fea1 = Feature(data, selected_funcs=Feature.funcs_subset_no_spect_slope)
-        fea2 = Feature(data2, selected_funcs=Feature.funcs_subset_no_spect_slope)
+        fea1 = Feature(data, selected_funcs=Feature.funcs_subset_no_spect_slope).reorder().fix_missing()
+        fea2 = Feature(data2, selected_funcs=Feature.funcs_subset_no_spect_slope).reorder().fix_missing()
 
         Feature.plot_feature_sns(fea1, fea2, ['ch1', 'ch2', 'ch3', 'ch4', 'ch5'])
         plt.show()
         _, p = Feature.ttest_feature(fea1, fea2, ['ch1', 'ch2', 'ch3', 'ch4', 'ch5'])
         plt.show()
+        print('Nan count: ', np.isnan(p).sum())
         self.assertTrue(True)
 
     def test_get_data(self):
