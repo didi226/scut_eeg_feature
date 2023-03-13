@@ -12,6 +12,7 @@ from scipy.fftpack import fft
 import tftb
 from statsmodels.tsa.arima.model import ARIMA
 from pactools.comodulogram import Comodulogram
+from EntropyHub import FuzzEn
 from nilearn.connectome import ConnectivityMeasure
 
 
@@ -619,6 +620,32 @@ def compute_multiscale_permutation_entropy(data, m=1, delay=1, scale=1):
     """
     return np.array([
         ent.multiscale_permutation_entropy(each_channel, m, delay, scale) for each_channel in data]).reshape(-1)
+
+
+def compute_fuzzy_entropy(data,m=2, tau=1, r=(.2,2), Fx='default', Logx=np.exp(1)):
+    """
+    Args:
+        data:  ndarray, shape (n_channels, n_times)
+        fuzzy_entropy 计算官方文档地址：https://www.entropyhub.xyz/python/Functions/Base.html
+        m:Embedding Dimension, a positive integer [default: 2]
+        嵌入维度，一个正整数[默认值：2]
+        tau:Time Delay, a positive integer [default: 1]
+        时间延迟，一个正整数[默认值：1]
+        Fx:Fuzzy function name, one of the following strings: {'sigmoid', 'modsampen', 'default', 'gudermannian', 'linear'}
+         模糊函数名，以下字符串之一：{ 'sigmoid' , 'modsampen' , 'default' , 'gudermannian' , 'linear' }
+        r:Fuzzy function parameters, a 1 element scalar or a 2 element vector of positive values. The r parameters for each fuzzy
+        模糊函数参数，一个 1 元素标量或一个 2 元素正值向量。每个模糊的 r 参数
+    Returns: (n_channel,)
+
+    """
+    n_channel, n_times = data.shape
+    FuzzEn_value = np.zeros((n_channel,m))
+    for i_channel in  range(n_channel):
+        FuzzEn_value[i_channel],_,_=FuzzEn(data[i_channel],m=m,tau=tau,Fx=Fx,r=r,Logx=Logx)
+    feature = FuzzEn_value.reshape(-1)
+    return feature
+
+
 
 
 
