@@ -719,6 +719,34 @@ def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],
         feature=feature_.reshape(-1)
     return feature
 
+def  compute_stft_2019(data,sfreq=250,win_times=10,n_fre_idx=36):
+    """
+    Args:
+        利用stft时频变换将固定频率点的能量求和作为特征
+        参考文献：Distinguishing mental attention states of humans via an EEG-based passive BCI using machine learning methods
+        data:             ndarray, shape (n_channels, n_times)
+        sfreq:            sfreq
+        win_times:        win_times 窗口时间
+        n_fre_idx:        需要求和的频率点
+
+    Returns:
+    """
+    from scipy.signal import stft
+    win_len = sfreq * win_times
+    n_channel, n_times = data.shape
+    section_num = n_times // win_len
+    feature = np.zeros((n_channel, section_num,n_fre_idx))
+    for i_section in range(section_num):
+        for i_channel in range(n_channel):
+            X= data[i_channel, i_section * win_len:(i_section + 1) * win_len]
+            f, t, Zxx = stft(X, fs=sfreq, window='blackman', nperseg=256, noverlap=None, nfft=512,
+                             detrend=False, boundary='zeros', padded=True)
+            Y=10*np.log(abs(np.mean(Zxx[2:n_fre_idx*2+1:2,:],axis=1)))
+            feature[i_channel, i_section] =Y
+    feature = feature.reshape(-1)
+    return feature
+
+
 
 # def compute_correlation_matrix(data,sfreq=250):
 #     '''

@@ -134,9 +134,26 @@ class MyTestCase(unittest.TestCase):
     #                         'pow_freq_bands__psd_method': 'fft',
     #                         'pow_freq_bands__log': True})
     #     fea=extract_features(data,sfreq=160,selected_funcs=selec_fun,funcs_params=select_para)
+    def test_fuzzy_entropy(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data1 = np.random.rand(2, 3, 500)
+        fea1 = Feature(data1, sfreq=100,
+                       selected_funcs=['fuzzy_entropy'],
+                       funcs_params={})
+        print(fea1.features)
 
+    def test_stft(self):
+        from scipy.signal import stft
+        import numpy as np
+        X = np.random.rand(2500)
+        f, t, Zxx = stft(X, fs=250, window='blackman', nperseg=256, noverlap=None, nfft=256,
+                         detrend=False, boundary='zeros', padded=True)
 
 
 if __name__ == '__main__':
-    unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTests(
+        [MyTestCase('test_stft')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+    runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
+    runner.run(suite)
 

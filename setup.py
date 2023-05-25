@@ -30,6 +30,7 @@ setuptools.setup(
         'scipy',
         'emd-signal',
         'pyentrp',
-        'pactools'
-    ],
+        'pactools',
+        'EntropyHub'
+],
 )
