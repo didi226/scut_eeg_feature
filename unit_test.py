@@ -142,18 +142,23 @@ class MyTestCase(unittest.TestCase):
                        funcs_params={})
         print(fea1.features)
 
-    def test_stft(self):
-        from scipy.signal import stft
-        import numpy as np
-        X = np.random.rand(2500)
-        f, t, Zxx = stft(X, fs=250, window='blackman', nperseg=256, noverlap=None, nfft=256,
-                         detrend=False, boundary='zeros', padded=True)
+
+    def test_feature_smooth(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data1 = np.random.rand(60, 3, 500)
+        fea1 = Feature(data1, sfreq=100,
+                       selected_funcs=['FDA'],
+                       funcs_params={})
+        print(fea1.features.shape)
+        feature2=fea1.feature_smooth(fea1.features,smooth_type="lsd",window_size=3)
+        print(feature2)
+
 
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_stft')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_feature_smooth')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 
