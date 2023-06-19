@@ -20,7 +20,7 @@ from nilearn.connectome import ConnectivityMeasure
 
 
 
-def compute_FDA(data, sfreq=250, win_times=1):
+def compute_DFA(data, sfreq=250, win_times=1):
     """
     Detrended fluctuation analysis
     去趋势波动分析用于寻找时间序列中的长期统计相关性
@@ -792,8 +792,6 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
     """
 
     n_channel,n_times=data.shape
-    print(data.shape)
-    print("cccc")
     #tangent 这个是多个epoch放在一起才能计算的
     if kind in ["covariance","correlation", "partial correlation", "tangent","precision"]:
         if filter_bank is not None:
