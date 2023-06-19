@@ -1,3 +1,4 @@
+import mne.filter
 import numpy as np
 from scipy.signal import hilbert
 from scipy.stats import iqr
@@ -14,6 +15,8 @@ from statsmodels.tsa.arima.model import ARIMA
 from pactools.comodulogram import Comodulogram
 from EntropyHub import FuzzEn
 from nilearn.connectome import ConnectivityMeasure
+
+#from mne_features.bivariate import compute_spect_corr, compute_phase_lock_val
 
 
 
@@ -719,6 +722,7 @@ def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],
         feature=feature_.reshape(-1)
     return feature
 
+
 def  compute_stft_2019(data,sfreq=250,win_times=10,n_fre_idx=36):
     """
     Args:
@@ -747,23 +751,77 @@ def  compute_stft_2019(data,sfreq=250,win_times=10,n_fre_idx=36):
     return feature
 
 
+def flatten_lower_triangle(matrix):
+    rows = len(matrix)
+    flattened = []
+    for i in range(rows):
+        for j in range(i):
+            flattened.append(matrix[i][j])
+    flattened=np.array(flattened)
+    return flattened
 
-# def compute_correlation_matrix(data,sfreq=250):
-#     '''
-#     Args:
-#         data:                    ndarray, shape (n_channels, n_times)
-#         data                     一般对应一种标签    时间跨度一般在30s到1min之间
-#
-#         sfreq:                   freq of time signal
-#         band:                    ndarray shape (2,) [fre_low, frre_high]      带通滤波器组参数
-#
-#     Returns:
-#
-#     '''
-#
-#     connectivity_measure = ConnectivityMeasure(kind='partial correlation')
-#     partial_correlation_matrix_0 = connectivity_measure.fit_transform(time_series_0)
-#
-#
-#
-#     return
+def reshape_to_lower_triangle(flattened_array,n_channel):
+    matrix=np.zeros((n_channel,n_channel))
+    count = 0
+    for i in range(n_channel):
+        for j in range(i):
+            matrix[i][j] = flattened_array[count]
+            count += 1
+    return matrix
+def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=None,n_win=1):
+    """
+    Parameters
+    ----------
+    data               ndarray,           shape (n_channels, n_times)
+    sfreq              int                freq of time signal
+    kind               str                计算相关矩阵的类型
+                                          利用nilearn的库计算
+                                          ["covariance","correlation", "partial correlation", "tangent","precision",
+                                          利用mne-connectivity计算
+                                          "ciplv", "ppc", "pli", "dpli", "wpli", "wpli2_debiased", "cohy", "imcoh","coh","plv"]
+    filter_bank        ndarray or list,   shape (2,) [fre_low, frre_high]      带通滤波器组参数 默认None即不做滤波
+    n_win              int                窗口的个数,部分的特征无法利用单一的epoch计算功能连接，因此选择将一个epoch切成可以计算的形状
+                                          例如：shape(30,2500)-->shape(2,30,1250)
+
+    Returns
+    -------
+    shape              int                (n_channel*n_channel)
+    note:                                 存在data再次进入的情况,即调用的时候n个epoch计算这个函数n次,但是会以错误的data的形状进入(n+1)次，
+                                          try避免这种影响,保证最后获得的特征无误,但是容易因为参数传的错误找不到报错
+                                          当发现计算错误的时候，主要检查n_win与计算的功能连接特征类型是不是匹配
+    """
+
+    n_channel,n_times=data.shape
+    print(data.shape)
+    print("cccc")
+    #tangent 这个是多个epoch放在一起才能计算的
+    if kind in ["covariance","correlation", "partial correlation", "tangent","precision"]:
+        if filter_bank is not None:
+            data = mne.filter.filter_data(data, sfreq=sfreq, l_freq=filter_bank[0], h_freq=filter_bank[1])
+        time_series = data.transpose(1, 0)
+        time_series = time_series.reshape(n_win, n_times//n_win,n_channel)
+        connectivity_measure = ConnectivityMeasure(kind=kind)
+        matrix_0 = connectivity_measure.fit_transform(time_series)[0]
+        feature = matrix_0
+    elif kind in ['ciplv', 'ppc', 'pli', 'dpli', 'wpli', 'wpli2_debiased', 'cohy', 'imcoh','coh','plv']:
+        ##['coh', 'plv'] 'cohy', 'imcoh'无法使用
+        new_data=data.reshape([n_win,n_channel,n_times//n_win])
+            ###这部分计算就可以进行结果也有问题
+        from mne_connectivity import spectral_connectivity_epochs
+        try:
+            if filter_bank is None:
+                feature_1 = spectral_connectivity_epochs(data=new_data, method=kind, mode='multitaper', sfreq=sfreq,
+                                                         faverage=True, mt_adaptive=False)
+            else:
+                feature_1=spectral_connectivity_epochs(data=new_data,method=kind,mode='multitaper', sfreq=sfreq, fmin=filter_bank[0],
+                                                       fmax=filter_bank[1],faverage=True, mt_adaptive=False)
+                # feature = feature_1.reshape((n_channel,n_channel))
+                # feature = np.tril(feature, 0) + np.tril(feature, -1).T
+            feature_1 = np.squeeze(feature_1.get_data("dense"))
+            np.fill_diagonal(feature_1,1)
+            feature = feature_1 + feature_1.T - np.diag(feature_1.diagonal())
+        except:
+               feature=np.eye(n_channel)
+               print("feature connectivity jump")
+    feature = feature.reshape(-1)
+    return feature

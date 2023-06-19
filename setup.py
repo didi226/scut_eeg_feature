@@ -31,6 +31,7 @@ setuptools.setup(
         'emd-signal',
         'pyentrp',
         'pactools',
-        'EntropyHub'
+        'EntropyHub',
+'pykalman'
 ],
 )

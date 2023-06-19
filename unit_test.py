@@ -142,7 +142,14 @@ class MyTestCase(unittest.TestCase):
                        funcs_params={})
         print(fea1.features)
 
-
+    def test_mne_coonectivty_plot(self):
+        data1 = np.random.rand(1, 20, 500)
+        from mne_connectivity import spectral_connectivity_epochs
+        feature_1 = spectral_connectivity_epochs(data=data1, method='coh', mode='multitaper', sfreq=100,
+                                                 fmin=2,
+                                                 fmax=40, faverage=True, mt_adaptive=False).get_data()
+        feature = feature_1.reshape((20, 20))
+        feature = np.tril(feature, 0) + np.tril(feature, -1).T
     def test_feature_smooth(self):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
         data1 = np.random.rand(60, 3, 500)
@@ -152,13 +159,47 @@ class MyTestCase(unittest.TestCase):
         print(fea1.features.shape)
         feature2=fea1.feature_smooth(fea1.features,smooth_type="lsd",window_size=3)
         print(feature2)
+    def  test_compute_correlation_matrix(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        from nilearn.connectome import ConnectivityMeasure
+        from nilearn import plotting
+        import matplotlib.cm as cm
+        ###构造随机矩阵
+        data1 = np.random.rand(10, 20, 500)
+        #针对第一维比较-直接计算
+        data=data1[0]
+        time_series = data.transpose(1, 0)
+        time_series = time_series.reshape(1, int(time_series.shape[0]), time_series.shape[1])
+        connectivity_measure = ConnectivityMeasure(kind="correlation")
+        matrix_0 = connectivity_measure.fit_transform(time_series)[0]
+        print(matrix_0)
+        #比较-利用Feature类计算
+        fea1 = Feature(data1, sfreq=100,
+                       selected_funcs=['correlation_matrix'],
+                       funcs_params={"correlation_matrix__kind":"coh"})
+
+        print(fea1.features[0])
+        ##计算相关性后可视化
+        plotting.plot_matrix(fea1.features[0], vmin=-0.5, vmax=1, cmap=cm.jet, colorbar=False)
+        plt.show()
+        # 查看结果是不是一样
+        self.assertTrue(fea1.features[0][5,4] == matrix_0[5,4])
+    def  test_data_shape(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        from nilearn.connectome import ConnectivityMeasure
+        from nilearn import plotting
+        import matplotlib.cm as cm
+
+
+
+
 
 
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_feature_smooth')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_compute_correlation_matrix')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 
