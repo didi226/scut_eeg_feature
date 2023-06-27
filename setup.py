@@ -32,6 +32,7 @@ setuptools.setup(
         'pyentrp',
         'pactools',
         'EntropyHub',
-'pykalman'
+'pykalman',
+'nolds'
 ],
 )
