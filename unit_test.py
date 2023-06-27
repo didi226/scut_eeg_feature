@@ -154,10 +154,10 @@ class MyTestCase(unittest.TestCase):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
         data1 = np.random.rand(60, 3, 500)
         fea1 = Feature(data1, sfreq=100,
-                       selected_funcs=['FDA'],
+                       selected_funcs=['DFA'],
                        funcs_params={})
         print(fea1.features.shape)
-        feature2=fea1.feature_smooth(fea1.features,smooth_type="lsd",window_size=3)
+        feature2=fea1.feature_smooth(fea1.features,smooth_type="UnscentedKalmanFilter",window_size=3)
         print(feature2)
     def  test_compute_correlation_matrix(self):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
@@ -184,11 +184,15 @@ class MyTestCase(unittest.TestCase):
         plt.show()
         # 查看结果是不是一样
         self.assertTrue(fea1.features[0][5,4] == matrix_0[5,4])
-    def  test_data_shape(self):
-        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
-        from nilearn.connectome import ConnectivityMeasure
-        from nilearn import plotting
-        import matplotlib.cm as cm
+    def  test_compute_correlation_dimension(self):
+        data1 = np.random.rand(10, 20, 500)
+        fea1 = Feature(data1, sfreq=100,
+                       selected_funcs=['correlation_dimension'],
+                       funcs_params={"correlation_dimension__emb_dim":10})
+        print(fea1.features.shape)
+        print(fea1.features)
+
+
 
 
 
@@ -199,7 +203,7 @@ class MyTestCase(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_compute_correlation_matrix')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_compute_correlation_dimension')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

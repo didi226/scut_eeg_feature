@@ -132,6 +132,9 @@ class Feature:
         if np.isin('teager_kaiser_energy0', self.feature_names):
             self.fix_teager_kaiser_energy(log=self.log_teager_kaiser_energy)
             self.__features_fix = True
+        if np.isin('spect_slope0', self.feature_names):
+            self.fix_spect_slope()
+            self.__features_fix = True
         return self.__features
 
     @features.setter
@@ -340,6 +343,27 @@ class Feature:
         else:
             self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
 
+    def fix_spect_slope(self):
+        """
+            mne_features 中，spect_slope的特征排列方式其它特征相反，需修复
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        spect_slope_names = ['spect_slope' + str(i) for i in
+                             range(np.char.startswith(self.feature_names, 'spect_slope').sum())]
+        print("Debug 模式下 rearrange 会错乱")
+        get_index = lambda source, target: np.argwhere(source == target)[0, 0]
+        reorder = lambda source, target: [get_index(each, target) for each in source]
+        _rearrange_ = lambda features: rearrange(
+            rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
+            'n_sub (n_ch n_fea)->  n_sub n_ch n_fea', n_ch=self.n_channel)
+
+        ind = reorder(spect_slope_names, self.feature_names)
+
+        self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
+
     @staticmethod
     def moving_average_filter(data, window_size):
         filtered_data = []
@@ -381,8 +405,31 @@ class Feature:
             smoothed_feature.extend(smoothed_state_means.flatten())
         smoothed_feature = np.array(smoothed_feature)
         return smoothed_feature
+    @staticmethod
+    def lsd_UnscentedKalmanFilter(data, window_size):
+        from pykalman import UnscentedKalmanFilter
+        window_num = data.shape[0] // window_size
+        smoothed_feature = []
+        for i_window in range(window_num + 1):
+            begin_idx = window_size * i_window
+            end_idx = window_size * (i_window + 1)
+            if begin_idx >= data.shape[0]:
+                continue
+            if end_idx > data.shape[0]:
+                end_idx = data.shape[0]
+            data_window = data[begin_idx:end_idx]
 
-    def feature_smooth(self, data, smooth_type="mv_av_filter", window_size=10):
+            initial_guess_A = np.array([[1.0]])
+            initial_guess_C = np.array([[1.0]])
+            kf = UnscentedKalmanFilter(transition_covariance=initial_guess_A,
+                observation_covariance=initial_guess_C)
+            smoothed_state_means, smoothed_state_covs = kf.smooth(data_window)
+            smoothed_feature.extend(smoothed_state_means.flatten())
+        smoothed_feature = np.array(smoothed_feature)
+        return smoothed_feature
+
+
+    def feature_smooth(self, data, smooth_type="lds", window_size=10):
         """
         Args:
             refernce
@@ -413,6 +460,9 @@ class Feature:
                 if smooth_type == "lds":
                     smoothed_data[:, i_channel, i_feature] = self.lsd_KalmanFilter(data[:, i_channel, i_feature],
                                                                                    window_size)
+                if smooth_type == "UnscentedKalmanFilter":
+                    smoothed_data[:, i_channel, i_feature] = self.lsd_UnscentedKalmanFilter(data[:, i_channel, i_feature],
+                                                                window_size)
         return smoothed_data
 
 

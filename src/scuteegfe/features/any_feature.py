@@ -16,7 +16,7 @@ from pactools.comodulogram import Comodulogram
 from EntropyHub import FuzzEn
 from nilearn.connectome import ConnectivityMeasure
 
-#from mne_features.bivariate import compute_spect_corr, compute_phase_lock_val
+
 
 
 
@@ -823,3 +823,19 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
                print("feature connectivity jump")
     feature = feature.reshape(-1)
     return feature
+
+def compute_correlation_dimension(data,emb_dim=10):
+    """
+    Args:
+        data:        ndarray,           shape (n_channels, n_times)
+        emb_dim:     int                嵌入维度默认为10
+    Returns:         feature            shape (n_channels)
+    """
+    import nolds
+    n_channel, n_times = data.shape
+    feature=np.zeros((n_channel))
+    for i_channel in  range(n_channel):
+        feature[i_channel]=nolds.corr_dim(data[i_channel,:],emb_dim)
+    return feature
+
+
