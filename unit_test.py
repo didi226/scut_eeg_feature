@@ -192,6 +192,13 @@ class MyTestCase(unittest.TestCase):
         print(fea1.features.shape)
         print(fea1.features)
 
+    def  test_compute_dispersion_entropy(self):
+        data1 = np.random.rand(10, 20, 500)
+        fea1 = Feature(data1, sfreq=100,
+                       selected_funcs=['dispersion_entropy'])
+        print(fea1.features.shape)
+        print(fea1.features)
+
 
 
 
@@ -203,7 +210,7 @@ class MyTestCase(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_compute_correlation_dimension')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_compute_dispersion_entropy')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

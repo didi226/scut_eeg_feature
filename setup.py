@@ -33,6 +33,7 @@ setuptools.setup(
         'pactools',
         'EntropyHub',
 'pykalman',
-'nolds'
+'nolds',
+'mne_connectivity'
 ],
 )

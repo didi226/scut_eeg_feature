@@ -837,5 +837,57 @@ def compute_correlation_dimension(data,emb_dim=10):
     for i_channel in  range(n_channel):
         feature[i_channel]=nolds.corr_dim(data[i_channel,:],emb_dim)
     return feature
+def compute_dispersion_entropy(data,classes=10,scale=1,emb_dim=2,delay=1,
+                                   mapping_type='cdf',de_normalize=False, A=100,Mu=100,return_all=False,warns=True):
+    """
+    Args:
+        data:        ndarray,           shape (n_channels, n_times)
+        classes: number of classes - (levels of quantization of amplitude) (default=10)
+        emb_dim: embedding dimension,
+        delay  : time delay (default=1)
+        scale  : downsampled signal with low resolution  (default=1)  - for multipscale dispersion entropy
+        mapping_type: mapping method to discretizing signal (default='cdf')
+               : options = {'cdf','a-law','mu-law','fd'}
+        A  : factor for A-Law- if mapping_type = 'a-law'
+        Mu : factor for μ-Law- if mapping_type = 'mu-law'
+
+        de_normalize: (bool) if to normalize the entropy, to make it comparable with different signal with different
+                     number of classes and embeding dimensions. default=0 (False) - no normalizations
+
+        if de_normalize=1:
+           - dispersion entropy is normalized by log(Npp); Npp=total possible patterns. This is classical
+             way to normalize entropy since   max{H(x)}<=np.log(N) for possible outcomes. However, in case of
+             limited length of signal (sequence), it would be not be possible to get all the possible patterns
+             and might be incorrect to normalize by log(Npp), when len(x)<Npp or len(x)<classes**emb_dim.
+             For example, given signal x with discretized length of 2048 samples, if classes=10 and emb_dim=4,
+             the number of possible patterns Npp = 10000, which can never be found in sequence length < 10000+4.
+             To fix this, the alternative way to nomalize is recommended as follow.
+           - select this when classes**emb_dim < (N-(emb_dim-1)*delay)
+
+          de_normalize=2: (recommended for classes**emb_dim > len(x)/scale)
+           - dispersion entropy is normalized by log(Npf); Npf [= (len(x)-(emb_dim - 1) * delay)]
+             the total  number of patterns founds in given sequence. This is much better normalizing factor.
+             In worst case (lack of better word) - for a very random signal, all Npf patterns could be different
+             and unique, achieving the maximum entropy and for a constant signal, all Npf will be same achieving to
+             zero entropy
+           - select this when classes**emb_dim > (N-(emb_dim-1)*delay)
+
+          de_normalize=3:
+           - dispersion entropy is normalized by log(Nup); number of total unique patterns (NOT RECOMMENDED)
+             -  it does not make sense (not to me, at least)
+
+          de_normalize=4:
+           - auto select normalizing factor
+           - if classes**emb_dim > (N-(emb_dim-1)*delay), then de_normalize=2
+           - if classes**emb_dim > (N-(emb_dim-1)*delay), then de_normalize=2
+    Returns:         feature            shape (n_channels)
+    """
+    import spkit
+    n_channel, n_times = data.shape
+    feature=np.zeros((n_channel))
+    for i_channel in  range(n_channel):
+          feature[i_channel],_=spkit.dispersion_entropy(data[i_channel,:],classes,scale,emb_dim,delay,
+                                   mapping_type,de_normalize, A,Mu,return_all,warns)
+    return feature
 
 
