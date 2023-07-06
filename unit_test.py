@@ -193,7 +193,7 @@ class MyTestCase(unittest.TestCase):
         print(fea1.features)
 
     def  test_compute_dispersion_entropy(self):
-        data1 = np.random.rand(10, 20, 500)
+        data1 = np.random.rand(1, 20, 500)
         fea1 = Feature(data1, sfreq=100,
                        selected_funcs=['dispersion_entropy'])
         print(fea1.features.shape)
