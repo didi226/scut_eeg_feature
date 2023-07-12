@@ -26,3 +26,17 @@ Fea = Feature(data,selected_funcs=Feature.mne_defined_funcs, funcs_params=None, 
 features = Fea.features
 feature_names = Fea.feature_names
 ```
+
+If you think this toolkit or the results are helpful to you and your research, please cite us!
+
+```
+@article{chen17eeg,
+  title={An EEG-Based Attention Recognition Method: Fusion of Time Domain, Frequency Domain and Nonlinear Dynamics Features},
+  author={Chen, Di and Huang, Haiyun and Pan, Jiahui and Bao, Xiaoyu and Li, Yuanqing},
+  journal={Frontiers in Neuroscience},
+  volume={17},
+  pages={1194554},
+  publisher={Frontiers}
+}
+```
+
