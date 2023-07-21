@@ -15,6 +15,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from pactools.comodulogram import Comodulogram
 from EntropyHub import FuzzEn
 from nilearn.connectome import ConnectivityMeasure
+from .pdc_dtf import calculate_dtf_pdc
 
 
 
@@ -512,12 +513,12 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
             section_de[:, section] = band_DE(spec, f, Par_ratios=m_Par_ratios, band=band)
         section_de=Processing_inf_nan(section_de)
         if Average:
-            de_mean = np.sum(section_de, axis=1);
+            de_mean = np.sum(section_de, axis=1)
         else:
-            de_mean = section_de;
+            de_mean = section_de
         if m_entropy:
             de_mean[de_mean == 0] = 1e-6
-            de_mean = np.multiply(de_mean, np.log(de_mean));
+            de_mean = np.multiply(de_mean, np.log(de_mean))
         de[channel, :] = de_mean
     feature = de.reshape(-1)
     return feature
@@ -768,6 +769,10 @@ def reshape_to_lower_triangle(flattened_array,n_channel):
             matrix[i][j] = flattened_array[count]
             count += 1
     return matrix
+
+
+
+
 def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=None,n_win=1):
     """
     Parameters
@@ -802,7 +807,6 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
         matrix_0 = connectivity_measure.fit_transform(time_series)[0]
         feature = matrix_0
     elif kind in ['ciplv', 'ppc', 'pli', 'dpli', 'wpli', 'wpli2_debiased', 'cohy', 'imcoh','coh','plv']:
-        ##['coh', 'plv'] 'cohy', 'imcoh'无法使用
         new_data=data.reshape([n_win,n_channel,n_times//n_win])
             ###这部分计算就可以进行结果也有问题
         from mne_connectivity import spectral_connectivity_epochs
@@ -813,14 +817,14 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
             else:
                 feature_1=spectral_connectivity_epochs(data=new_data,method=kind,mode='multitaper', sfreq=sfreq, fmin=filter_bank[0],
                                                        fmax=filter_bank[1],faverage=True, mt_adaptive=False)
-                # feature = feature_1.reshape((n_channel,n_channel))
-                # feature = np.tril(feature, 0) + np.tril(feature, -1).T
             feature_1 = np.squeeze(feature_1.get_data("dense"))
             np.fill_diagonal(feature_1,1)
             feature = feature_1 + feature_1.T - np.diag(feature_1.diagonal())
         except:
                feature=np.eye(n_channel)
                print("feature connectivity jump")
+    elif kind in ['dtf','pdc']:
+            feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
     feature = feature.reshape(-1)
     return feature
 

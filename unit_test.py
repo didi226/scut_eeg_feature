@@ -198,19 +198,26 @@ class MyTestCase(unittest.TestCase):
                        selected_funcs=['dispersion_entropy'])
         print(fea1.features.shape)
         print(fea1.features)
-
-
-
-
-
-
+    def test_dft(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        from nilearn import plotting
+        import matplotlib.cm as cm
+        ###构造随机矩阵
+        data1 = np.random.rand(10, 20, 500)
+        fea1 = Feature(data1, sfreq=100,
+                       selected_funcs=['correlation_matrix'],
+                       funcs_params={"correlation_matrix__kind": "dtf","correlation_matrix__filter_bank": np.array([8,12])})
+        print(fea1.features[0])
+        ##计算相关性后可视化
+        plotting.plot_matrix(fea1.features[0], vmin=0, vmax=0.1, cmap=cm.jet, colorbar=False)
+        plt.show()
 
 
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_compute_dispersion_entropy')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_dft')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 
