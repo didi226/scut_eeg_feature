@@ -806,7 +806,7 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
         connectivity_measure = ConnectivityMeasure(kind=kind)
         matrix_0 = connectivity_measure.fit_transform(time_series)[0]
         feature = matrix_0
-    elif kind in ['ciplv', 'ppc', 'pli', 'dpli', 'wpli', 'wpli2_debiased', 'cohy', 'imcoh','coh','plv']:
+    elif kind in ['ciplv', 'ppc', 'pli', 'dpli', 'wpli', 'wpli2_debiased', 'cohy', 'imcoh','coh','plv','gc','gc_tr','mic','mim']:
         new_data=data.reshape([n_win,n_channel,n_times//n_win])
             ###这部分计算就可以进行结果也有问题
         from mne_connectivity import spectral_connectivity_epochs

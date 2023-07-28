@@ -312,12 +312,11 @@ def calculate_dtf_pdc(X,sfreq=250,kind='dtf',p=None,normalize_=True,filter_bank=
     if  filter_bank is not None:
         idx = np.where((freqs >= filter_bank[0]) & (freqs<= filter_bank[1]))[0]
         matrix=matrix[idx,:,:]
-
     matrix = np.sum(matrix, axis=0)
-    np.fill_diagonal(matrix, 0)
     if normalize_:
         for i  in range(n_channel):
             matrix[i,:]=matrix[i,:]**2/np.sum((matrix[i,:])**2)
+    np.fill_diagonal(matrix, 0)
     return matrix
 
 
