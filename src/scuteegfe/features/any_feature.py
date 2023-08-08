@@ -13,6 +13,7 @@ from scipy.fftpack import fft
 import tftb
 from statsmodels.tsa.arima.model import ARIMA
 from pactools.comodulogram import Comodulogram
+#from pactools.utils import rayleigh_z
 from EntropyHub import FuzzEn
 from nilearn.connectome import ConnectivityMeasure
 from .pdc_dtf import calculate_dtf_pdc
@@ -657,6 +658,7 @@ def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],
                  mode='eeg_rhythm', low_fq_range=None, low_fq_width=2., high_fq_range='auto',
                  high_fq_width='auto', method='tort', n_surrogates=0,n_jobs=1):
     """
+    只计算通道和自己通道数据的频带调制关系，但是可以计算多个频带
     Args:
         data:                    ndarray, shape (n_channels, n_times)
         sfreq:                   freq of time signal
@@ -825,8 +827,42 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
                print("feature connectivity jump")
     elif kind in ['dtf','pdc']:
             feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
+    # elif kind in ['pac']:
+    #     if filter_bank is None:
+    #         c = Comodulogram(fs=sfreq, low_fq_range=np.array(i_center_fq), low_fq_width=i_fq_width,
+    #                          high_fq_range=np.array(j_center_fq), high_fq_width=j_fq_width, method=method,
+    #                          n_surrogates=n_surrogates, n_jobs=n_jobs)
+
+
     feature = feature.reshape(-1)
     return feature
+
+def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]), n_surrogates=0,mode="self"):
+    n_channel, n_times = data.shape
+    # low_center_fq = (bank[0, 0] + bank[0, 1]) / 2
+    low_fq_width = band[0, 1] - band[0, 0]
+    # high_center_fq = (bank[1, 0] + bank[1, 1]) / 2
+    high_fq_width = band[1, 1] - band[1, 0]
+    low_fq_range =np.linspace(band[0,0],band[0,1],low_fq_width)
+    high_fq_range = np.linspace(band[0, 0], band[0, 1], high_fq_width)
+    c = Comodulogram(fs=sfreq, low_fq_range=low_fq_range, high_fq_range=high_fq_range,method=method,
+                     n_surrogates=n_surrogates,n_jobs=-1)
+    if mode== "self":
+        feature=np.zeros((n_channel))
+        for N_channel in range(n_channel):
+            sig = data[N_channel, :]
+            feature[N_channel] = np.mean(c.fit(sig).comod_)
+    elif mode== "non-self":
+        feature = np.zeros((n_channel,n_channel))
+        for i_channel in range(n_channel):
+            for j_channel in range(n_channel):
+                sig_low = data[i_channel, :]
+                sig_high = data[j_channel, :]
+                feature[i_channel,j_channel] =  np.mean(c.fit(sig_low,sig_high).comod_)
+    feature = feature.reshape(-1)
+    return feature
+
+
 
 def compute_correlation_dimension(data,emb_dim=10):
     """
