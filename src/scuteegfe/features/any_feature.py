@@ -827,17 +827,24 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
                print("feature connectivity jump")
     elif kind in ['dtf','pdc']:
             feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
-    # elif kind in ['pac']:
-    #     if filter_bank is None:
-    #         c = Comodulogram(fs=sfreq, low_fq_range=np.array(i_center_fq), low_fq_width=i_fq_width,
-    #                          high_fq_range=np.array(j_center_fq), high_fq_width=j_fq_width, method=method,
-    #                          n_surrogates=n_surrogates, n_jobs=n_jobs)
-
 
     feature = feature.reshape(-1)
     return feature
 
-def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]), n_surrogates=0,mode="self"):
+def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]), n_surrogates=0,mode="self",approach_pac="mean"):
+    """
+    Args:
+        data:
+        sfreq:
+        method:
+        band:
+        n_surrogates:
+        mode:
+        approach_pac:
+
+    Returns:
+
+    """
     n_channel, n_times = data.shape
     # low_center_fq = (bank[0, 0] + bank[0, 1]) / 2
     low_fq_width = band[0, 1] - band[0, 0]
@@ -851,14 +858,23 @@ def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8
         feature=np.zeros((n_channel))
         for N_channel in range(n_channel):
             sig = data[N_channel, :]
-            feature[N_channel] = np.mean(c.fit(sig).comod_)
+            pac_matrix=c.fit(sig).comod_
+            if approach_pac=="mean":
+                  feature[N_channel] = np.mean(pac_matrix)
+            elif approach_pac=="max":
+                feature[N_channel] = np.max(pac_matrix)
+
     elif mode== "non-self":
         feature = np.zeros((n_channel,n_channel))
         for i_channel in range(n_channel):
             for j_channel in range(n_channel):
                 sig_low = data[i_channel, :]
                 sig_high = data[j_channel, :]
-                feature[i_channel,j_channel] =  np.mean(c.fit(sig_low,sig_high).comod_)
+                pac_matrix = c.fit(sig_low,sig_high).comod_
+                if approach_pac == "mean":
+                    feature[i_channel,j_channel] =  np.mean(pac_matrix)
+                elif approach_pac == "max":
+                    feature[i_channel, j_channel] = np.max(pac_matrix)
     feature = feature.reshape(-1)
     return feature
 
