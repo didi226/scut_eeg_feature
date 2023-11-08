@@ -30,10 +30,10 @@ setuptools.setup(
         'scipy',
         'emd-signal',
         'pyentrp',
+        'nolds',
         'pactools',
         'EntropyHub',
 'pykalman',
-'nolds',
 'mne_connectivity',
 'spkit'
 ],

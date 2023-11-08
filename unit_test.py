@@ -135,7 +135,7 @@ class MyTestCase(unittest.TestCase):
     #                         'pow_freq_bands__log': True})
     #     fea=extract_features(data,sfreq=160,selected_funcs=selec_fun,funcs_params=select_para)
     def test_fuzzy_entropy(self):
-        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        from scuteegfe import Feature
         data1 = np.random.rand(2, 3, 500)
         fea1 = Feature(data1, sfreq=100,
                        selected_funcs=['fuzzy_entropy'],
@@ -157,7 +157,9 @@ class MyTestCase(unittest.TestCase):
                        selected_funcs=['DFA'],
                        funcs_params={})
         print(fea1.features.shape)
-        feature2=fea1.feature_smooth(fea1.features,smooth_type="UnscentedKalmanFilter",window_size=3)
+        print(data1)
+        feature2=fea1.feature_smooth(fea1.features,smooth_type="UnscentedKalmanFilter_sigmoid",window_size=3)
+        #feature2 = fea1.feature_smooth(fea1.features, smooth_type="lds", window_size=3)
         print(feature2)
     def  test_compute_correlation_matrix(self):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
@@ -191,6 +193,11 @@ class MyTestCase(unittest.TestCase):
                        funcs_params={"correlation_dimension__emb_dim":10})
         print(fea1.features.shape)
         print(fea1.features)
+    def  test_compute_dfa(self):
+        data1 = np.random.rand(10, 20, 500)
+        fea1 = Feature(data1, sfreq=100,selected_funcs=['DFA'],funcs_params={"DFA__sfreq":100}) #
+        print(fea1.features.shape)
+        print(fea1.features)
 
     def  test_compute_dispersion_entropy(self):
         data1 = np.random.rand(1, 20, 500)
@@ -211,13 +218,51 @@ class MyTestCase(unittest.TestCase):
         ##计算相关性后可视化
         plotting.plot_matrix(fea1.features[0], vmin=0, vmax=0.1, cmap=cm.jet, colorbar=False)
         plt.show()
+    def test_periodic_aperiodic_components(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        import scipy.io as sio
+        ###构造随机矩阵
+        mat_data = sio.loadmat(r"D:\files_save\Data\Pazhou-RS-45Hz\mat\stu_ss65_0701.mat")['eo_output'][:,:,:1000]
+        fea1 = Feature(data=mat_data, sfreq=250,selected_funcs=['aperiodic_periodic_offset_exponent_cf'],
+                       funcs_params={"aperiodic_periodic_offset_exponent_cf__n":512})
+        print(fea1.features.shape)
+        print(fea1.features[0,:,1])
+
+    def test_offset_exponent_cf(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        import scipy.io as sio
+        ###构造随机矩阵
+        mat_data = sio.loadmat(r"D:\files_save\Data\Pazhou-RS-45Hz\mat\stu_ss65_0701.mat")['eo_output'][:,:,:1000]
+        # fea2 = Feature(data=mat_data, sfreq=250,selected_funcs=['offset_exponent_cf'],
+        #                funcs_params={"offset_exponent_cf__n":512})
+        # print(fea2.features.shape)
+        #
+        # print(fea2.features[1,:,1])
+        fea1 = Feature(data=mat_data, sfreq=250,selected_funcs=['aperiodic_periodic_offset_exponent_cf'],
+                       funcs_params={"aperiodic_periodic_offset_exponent_cf__n":512})
+        print(fea1.features.shape)
+        print(fea1.features[1,:,1])
+
+    def test_reative_power(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data1 = np.random.rand(10, 20, 500)
+        fea1 = Feature(data=data1, sfreq=250,selected_funcs=['relative_power'])#,funcs_params={"relative_power__freq_bands": np.array([0.5,4,8,12]) }
+        print(fea1.features)
+        print(fea1.features.shape)
+    def test_alpha(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data = np.random.rand(10, 26, 1000)
+        fea1 = Feature(data=data, sfreq=100,selected_funcs=['alpha_asymetry'],funcs_params={"alpha_asymetry__mode": "eeglab"})
+        #"definition_ln" "definition_ratio"  "eeglab" "definition_lnratio" "definition_ln_rel" "definition_ratio_rel" "definition_lnratio_rel"
+        print(fea1.features)
+        print(fea1.features.shape)
 
 
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_dft')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_alpha')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

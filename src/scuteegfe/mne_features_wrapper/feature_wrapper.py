@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from copy import deepcopy
+import warnings
 import numbers
 
 
@@ -42,6 +43,8 @@ class Feature:
             print('available features:', self.mne_defined_funcs)
             self.__features = None
             return
+        if sfreq!=250:
+            warnings.warn("提案的函数sfreq需要再以参数的形式传入", UserWarning)
         self.__feature_names = None
         self.__features = None
         self.log_teager_kaiser_energy = log_teager_kaiser_energy
@@ -389,11 +392,17 @@ class Feature:
                 end_idx = data.shape[0]
             data_window = data[begin_idx:end_idx]
 
-            initial_guess_A = np.array([[1.0]])
-            initial_guess_C = np.array([[1.0]])
-            kf = KalmanFilter(
-                transition_matrices=initial_guess_A,
-                observation_matrices=initial_guess_C)
+
+            transition_covariance = np.diag([0.1, 0.1])
+            transition_covariance = 0.1
+            observation_covariance = 0.001
+            initial_state_mean = np.mean(data_window)
+            initial_state_covariance = 1
+
+            kf = KalmanFilter(transition_covariance = transition_covariance,
+                              observation_covariance = observation_covariance,
+                initial_state_mean=initial_state_mean,
+                initial_state_covariance=initial_state_covariance)
             # Estimate the parameters using the EM algorithm
             kf = kf.em(data_window)
             estimated_A = kf.transition_matrices
@@ -406,10 +415,18 @@ class Feature:
         smoothed_feature = np.array(smoothed_feature)
         return smoothed_feature
     @staticmethod
-    def lsd_UnscentedKalmanFilter(data, window_size):
+    def lsd_UnscentedKalmanFilter(data, window_size,observation_functions_type=None):
         from pykalman import UnscentedKalmanFilter
         window_num = data.shape[0] // window_size
         smoothed_feature = []
+        if observation_functions_type == "sigmoid":
+            def measurement_function(x, w):
+                return np.arctanh(x / (5 * 10 ** 7)) * 10 ** 7 + w
+
+            def measurement_function_oly_x(x):
+                return np.arctanh(x / (5 * 10 ** 7)) * 10 ** 7
+        else:
+            measurement_function = None
         for i_window in range(window_num + 1):
             begin_idx = window_size * i_window
             end_idx = window_size * (i_window + 1)
@@ -419,10 +436,23 @@ class Feature:
                 end_idx = data.shape[0]
             data_window = data[begin_idx:end_idx]
 
-            initial_guess_A = np.array([[1.0]])
-            initial_guess_C = np.array([[1.0]])
-            kf = UnscentedKalmanFilter(transition_covariance=initial_guess_A,
-                observation_covariance=initial_guess_C)
+
+            transition_covariance = 0.1
+            observation_covariance = 0.001
+            if observation_functions_type == "sigmoid":
+                initial_state = [measurement_function_oly_x(x) for x in data_window]
+                initial_state_mean = np.mean(initial_state)
+            else:
+                initial_state_mean = np.mean(data_window)
+            initial_state_covariance = 1
+            kf = UnscentedKalmanFilter(
+                observation_functions = measurement_function,
+                 transition_covariance = transition_covariance,
+                 observation_covariance = observation_covariance,
+                                       initial_state_mean = initial_state_mean,
+                                       initial_state_covariance = initial_state_covariance
+                                       )
+
             smoothed_state_means, smoothed_state_covs = kf.smooth(data_window)
             smoothed_feature.extend(smoothed_state_means.flatten())
         smoothed_feature = np.array(smoothed_feature)
@@ -463,6 +493,8 @@ class Feature:
                 if smooth_type == "UnscentedKalmanFilter":
                     smoothed_data[:, i_channel, i_feature] = self.lsd_UnscentedKalmanFilter(data[:, i_channel, i_feature],
                                                                 window_size)
+                if smooth_type == "UnscentedKalmanFilter_sigmoid":
+                    smoothed_data[:, i_channel, i_feature] = self.lsd_UnscentedKalmanFilter( data[:, i_channel, i_feature],window_size,"sigmoid")
         return smoothed_data
 
 

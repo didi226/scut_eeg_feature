@@ -17,6 +17,12 @@ from pactools.comodulogram import Comodulogram
 from EntropyHub import FuzzEn
 from nilearn.connectome import ConnectivityMeasure
 from .pdc_dtf import calculate_dtf_pdc
+from fooof import FOOOFGroup
+from scipy.stats import norm
+from fooof.bands import Bands
+from fooof.analysis import get_band_peak_fg
+import matplotlib.pyplot as plt
+from mne_features.univariate import compute_pow_freq_bands
 
 
 
@@ -36,8 +42,8 @@ def compute_DFA(data, sfreq=250, win_times=1):
     feature = np.zeros((n_channel, section_num))
     for i_section in range(section_num):
         for i_channel in range(n_channel):
-            feature[i_channel,i_section]=ant.detrended_fluctuation(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
-    feature = feature.reshape(-1)
+            feature[i_channel,i_section] = ant.detrended_fluctuation(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
+    feature = feature.T.reshape(-1)
     return feature
 def compute_Shannon_entropy(data, sfreq=250,round_para=1, win_times=1):
     """
@@ -57,7 +63,7 @@ def compute_Shannon_entropy(data, sfreq=250,round_para=1, win_times=1):
     for i_section in range(section_num):
         for i_channel in range(n_channel):
             feature[i_channel,i_section]=ent.shannon_entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 def Tsallis_Entropy(time_series,alpha=2):
     """
@@ -143,7 +149,7 @@ def compute_ARMA_kalman_filter(data,AR_p=10,MA_q=1):
         arma_mod = ARIMA(data[i_channel,:], order=(AR_p, 0, MA_q))
         arma_res = arma_mod.fit()
         feature[i_channel,:]=np.concatenate([arma_res.polynomial_ar[1:], arma_res. polynomial_ma[1:]])
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 
 def get_fft_values(y, N=None, f_s=250):
@@ -195,11 +201,11 @@ def compute_Harmonic_Parameters(data,sfreq=250,
          #  feature[i_channel, i_band, 1] = frequency_band
            f_idx=find_nearest(f_,center_frequency)
            feature[i_channel, i_band]=fft_[f_idx]
-   feature = feature.reshape(-1)
+   feature = feature.T.reshape(-1)
    return feature
 def compute_Median_Frequency(data,sfreq=250,
                                 band=np.array([[0.5,2],[2, 4], [4, 5],
-                                [5, 7], [7, 10], [10, 13],[13,15],[15,20],[20,30],[30,40]])):
+                                [5, 7], [7, 10], [10, 13],[13,15],[15,20],[20,30],[30,40]]),N=None):
     '''
 
     :param data:    ndarray, shape (n_channels, n_times)
@@ -220,9 +226,9 @@ def compute_Median_Frequency(data,sfreq=250,
     band_num = band.shape[0]
     feature = np.zeros((n_channel, band_num))
     for i_channel in range(n_channel):
-       f_, fft_ = get_fft_values(data[i_channel, :], f_s=sfreq)
+       f_, fft_ = get_fft_values(data[i_channel, :],N=N, f_s=sfreq)
        feature[i_channel,:]=band_Median_Frequency(Pxx=fft_,f=f_,band=band)
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 def band_Median_Frequency(Pxx, f, band=None):
     """
@@ -293,7 +299,7 @@ def compute_Coherence(data,Co_channel=None,
            ff,cxx=signal.coherence(x, y, fs=sfreq,
                             window='hann', nperseg=None, noverlap=None, nfft=None, detrend='constant', axis=- 1)
            feature[channel_0,channel_1,:]=band_DE(cxx,ff,Par_ratios=0,band=band)
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 def  compute_WignerVilleDistribution(data,sfreq=250 ):
     '''
@@ -312,7 +318,7 @@ def  compute_WignerVilleDistribution(data,sfreq=250 ):
                                                 timestamps=np.arange(n_times)*(1/sfreq))
         tfr_wvd, t_wvd, f_wvd = wvd.run()
         feature[i_channel,:]=np.polyfit(t_wvd, tfr_wvd[-1,:], 3)
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 
 def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
@@ -333,7 +339,7 @@ def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     for i_section in range(section_num):
         for i_channel in range(n_channel):
             feature[i_channel,i_section]=Renyi_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 def compute_Tsallis_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     """
@@ -353,7 +359,7 @@ def compute_Tsallis_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     for i_section in range(section_num):
         for i_channel in range(n_channel):
             feature[i_channel,i_section]=Tsallis_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 
 
@@ -382,7 +388,8 @@ def compute_EMD(data, sfreq=250, EMD_times=1, EMD_params=6):
         for N_channel in range(n_channel):
             IMFs = emd.emd(data[N_channel, N_length * EMD_length:(N_length + 1) * EMD_length])
             signal_imfs[N_channel, N_length, :, :] = IMFs[0:EMD_params, :]
-    feature = signal_imfs.reshape(-1)
+    signal_imfs = signal_imfs.reshape((n_channel, -1))
+    feature = signal_imfs.T.reshape(-1)
     return feature
 def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None):
     '''
@@ -414,7 +421,8 @@ def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None
             y = y[np.newaxis, :]
         bic, _ = bicoherence(y, nfft, wind, nsamp, overlap)
         feature.append(bic)
-    feature = np.array(feature).reshape(-1)
+    feature = np.array(feature).reshape((n_channel,-1))
+    feature = feature.reshape(-1)
     return feature
 def compute_Itakura_Distance(data,baseline_data=None,dist='square', options={'max_slope': 2.0},
                                     precomputed_cost=None, return_cost=False,
@@ -521,7 +529,7 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
             de_mean[de_mean == 0] = 1e-6
             de_mean = np.multiply(de_mean, np.log(de_mean))
         de[channel, :] = de_mean
-    feature = de.reshape(-1)
+    feature = de.T.reshape(-1)
     return feature
 def imp_extract_wavelet(section_data,Fs, time_sec,wavelet_name):
     f = np.arange(1, 129, 0.2)
@@ -750,7 +758,7 @@ def  compute_stft_2019(data,sfreq=250,win_times=10,n_fre_idx=36):
                              detrend=False, boundary='zeros', padded=True)
             Y=10*np.log(abs(np.mean(Zxx[2:n_fre_idx*2+1:2,:],axis=1)))
             feature[i_channel, i_section] =Y
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 
 
@@ -828,30 +836,32 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
     elif kind in ['dtf','pdc']:
             feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
 
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 
 def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]), n_surrogates=0,mode="self",approach_pac="mean"):
     """
     Args:
-        data:
-        sfreq:
-        method:
-        band:
-        n_surrogates:
-        mode:
-        approach_pac:
+        data:                    ndarray,           shape (n_channels, n_times)
+        sfreq:                   int                freq of time signal
+        method:                  计算方式             Comodulogram 里面的参数 "tort" "jiang"
+        band:                    ndarray            shape (2,2)  np.array([[4, 8],[30,45]]
+        n_surrogates:            计算参数
+        mode:                    计算模式            　"self" 计算每个通道的PAC
+                                                    "non-self"计算每个通道之间相互的PAC
+        approach_pac:　　　　　　　　　　　　　　　　　　　"mean" PAC  取均值
+                                                    "max" PAC  取最大值
+
 
     Returns:
 
     """
+
     n_channel, n_times = data.shape
-    # low_center_fq = (bank[0, 0] + bank[0, 1]) / 2
     low_fq_width = band[0, 1] - band[0, 0]
-    # high_center_fq = (bank[1, 0] + bank[1, 1]) / 2
     high_fq_width = band[1, 1] - band[1, 0]
     low_fq_range =np.linspace(band[0,0],band[0,1],low_fq_width)
-    high_fq_range = np.linspace(band[0, 0], band[0, 1], high_fq_width)
+    high_fq_range = np.linspace(band[1, 0], band[1, 1], high_fq_width)
     c = Comodulogram(fs=sfreq, low_fq_range=low_fq_range, high_fq_range=high_fq_range,method=method,
                      n_surrogates=n_surrogates,n_jobs=-1)
     if mode== "self":
@@ -945,6 +955,232 @@ def compute_dispersion_entropy(data,classes=10,scale=1,emb_dim=2,delay=1,
           feature[i_channel],_=spkit.dispersion_entropy(data[i_channel,:],classes,scale,emb_dim,delay,
                                    mapping_type,de_normalize, A,Mu,return_all,warns)
     return feature
+def compute_aperiodic_periodic_offset_exponent_cf(data,sfreq=250,n=1024,freq_range=None):
+    """
+    Args:
+        data:        ndarray,           shape (n_channels, n_times)
+        sfreq:       sfreq              信号采样频率
+        n:           傅里叶变换的频率点数   一般来说根据数据的点数一致
+        freq_range:  FOOOFGroup的范围     例如[2,50] 进行拟合的范围
+
+    Returns:
+
+    """
+
+    n_channel, n_times = data.shape
+    feature=np.zeros((n_channel,2))
+    spectrum_frequencies = np.zeros((n_channel,n))
+    freqs = np.fft.fftfreq(n, 1 / sfreq)
+    for i_channel in range(n_channel):
+        spectrum_frequencies[i_channel, :]=np.abs(np.fft.fft(data[i_channel,:],n=n))
+    fg1 = FOOOFGroup(verbose=False)
+    fg1.fit(freqs, np.square(spectrum_frequencies),freq_range=freq_range)
+    #[Offset, Exponent].
+    feature[:,:2] = fg1.get_params("aperiodic_params")
+    #[CF, PW, BW]..
+    # peak_para=fg1.get_params('peak_params')
+    # for i_channel in range(n_channel):
+    #     idx_i_channel = np.where(peak_para[:,3] == i_channel)[0]
+    #     peak_i_channel = peak_para[idx_i_channel,:]
+    #     feature[i_channel,2] = peak_i_channel[np.argmax(peak_i_channel[:,1]),0]
+    # bands = Bands({'alpha': [8, 12]})
+    # feature[:,3] = get_band_peak_fg(fg1, bands.alpha)[:,0]
+    feature = feature.T.reshape(-1)
+    return feature
+def compute_offset_exponent_cf(data,sfreq=250,n=1024):
+    from mne_features.univariate import compute_spect_slope
+    n_channel, n_times = data.shape
+    feature=np.zeros((n_channel,2))
+    feature[:,2]=compute_Median_Frequency(data,sfreq=250,band=np.array([[8,12]]),N=n)
+    # print(feature[:,2])
+    slope_para=compute_spect_slope(sfreq, data, fmin=0.1, fmax=50,with_intercept=True, psd_method='welch', psd_params=None)
+    slope_para=slope_para.reshape(n_channel,4)
+    # print(slope_para)
+    # print(slope_para.shape)
+    # intercept, slope,
+    feature[:, :2]=slope_para[:, :2]
+    feature[:,1]=-feature[:,1]
+    feature = feature.T.reshape(-1)
+    return feature
+def compute_relative_power(data, sfreq=100, freq_bands=np.array([0.5, 4]), total_band = np.array([0.5, 50]),
+                           ratios=None, ratios_triu=False,psd_method='welch', log=False, psd_params=None):
+    """
+    Args:
+        data:        ndarray,           shape (n_channels, n_times)
+        sfreq:       sfreq              信号采样频率
+        freq_bands:  narray             定义方式类似于compute_pow_freq_bands
+        total_band:  narray             np.array([0.5, 50]
+        normalize:
+        ratios:
+        ratios_triu:
+        psd_method:
+        log:
+        psd_params:
+
+    Returns:
+
+    """
+    band_power = compute_pow_freq_bands(sfreq, data, freq_bands=freq_bands,
+                           normalize=False, ratios=ratios, ratios_triu=ratios_triu,
+                           psd_method=psd_method, log=log, psd_params=psd_params)
+    total_power= compute_pow_freq_bands(sfreq, data, freq_bands=total_band,
+                           normalize=False, ratios=ratios, ratios_triu=ratios_triu,
+                           psd_method=psd_method, log=log, psd_params=psd_params)
+    n_band = int(band_power.shape[0]/total_power.shape[0])
+    total_power = np.tile(total_power, (n_band, 1))
+    relaPower = band_power/total_power.reshape(-1)
+    return relaPower
+
+def get_power_from_channel(data,wind,windowsover,i_channel,channel,sfreq,freq1,freq2):
+    L = channel.index(i_channel)
+    signL = data[L, :]
+    powerL, freqsL, t, _ = plt.specgram(signL, mode='psd', NFFT=wind, noverlap=windowsover, Fs=sfreq)
+    indFreqs = [i for i, x in enumerate(freqsL) if freq1 <= x <= freq2]
+    pow_L = powerL[indFreqs, 0]
+    return pow_L
+
+def compute_alpha_asymetry(data, sfreq=100, freq1=8, freq2=12, left='F3', right='F4', channel=None, mode="eeglab"):
+    """
+    Args:
+        data:   ndarray,           shape (n_channels, n_times)
+        sfreq:  int                采样频率
+        freq1:  float              频率范围，下范围
+        freq2:  float              频率范围，上范围
+        left:   str                左边对应的通道名称
+        right:  str                右边对应的通道名称
+        channel: list              通道列表
+        mode:    str               alpha_asymetry的计算方式 #"definition_ln" "definition_ratio"  "eeglab"
+                                   "definition_lnratio" "definition_ln_rel" "definition_ratio_rel" "definition_lnratio_rel"
+
+    Returns:
+
+    """
+    if channel is None:
+        channel = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'FC3', 'FCz', 'FC4',
+                   'T7', 'C3', 'Cz', 'C4', 'T8', 'CP3', 'CPz', 'CP4', 'P7', 'P3',
+                   'Pz', 'P4', 'P8', 'O1', 'Oz', 'O2']
+    n_channel, length = data.shape
+    try:
+        if mode =="eeglab":
+                wind = int(np.floor(length / 1.5))
+                windowsover = int(np.floor(length / 1.5 / 2))
+                pow_L = get_power_from_channel(data,wind,windowsover,left,channel,sfreq,freq1,freq2)
+                pow_R = get_power_from_channel(data, wind, windowsover, right, channel,sfreq,freq1,freq2)
+                FAA = np.mean(np.abs(np.log(pow_R) - np.log(pow_L)))
+        elif "definition" in mode:
+            info = mne.create_info(channel, sfreq)
+            raw = mne.io.RawArray(data, info)
+            psd = raw.compute_psd(method="welch", fmin=0.5, fmax=sfreq / 2, picks="all")
+            alpha_mask = ((psd.freqs >= freq1) & (psd.freqs <= freq2))
+
+            F3 = psd.copy().pick([left])
+            F4 = psd.copy().pick([right])
+            F3_total = F3.get_data([left]).squeeze()
+            F4_total = F4.get_data([right]).squeeze()
+
+            F3_alpha = F3_total[alpha_mask]
+            F4_alpha = F4_total[alpha_mask]
+
+            F3_rel_alpha = F3_alpha.mean() / F3_total.mean()
+            F4_rel_alpha = F4_alpha.mean() / F4_total.mean()
+            if mode == "definition_ln":
+                FAA = np.mean(np.abs(np.log(F4_alpha) - np.log(F3_alpha)))
+            elif mode == "definition_ratio":
+                FAA = np.mean(np.abs((F4_alpha - F3_alpha) / (F3_alpha + F4_alpha)))
+            elif mode == "definition_lnratio":
+                FAA = np.mean(np.abs((np.log(F4_alpha) - np.log(F3_alpha)) / (np.log(F3_alpha) + np.log(F4_alpha))))
+            elif mode == "definition_ln_rel":
+                FAA = np.abs(np.log(F4_rel_alpha) - np.log(F3_rel_alpha))
+            elif mode == "definition_ratio_rel":
+                FAA = np.abs((F4_rel_alpha - F3_rel_alpha) / (F3_rel_alpha + F4_rel_alpha))
+            elif mode == "definition_lnratio_rel":
+                FAA = np.abs(
+                    (np.log(F4_rel_alpha) - np.log(F3_rel_alpha)) / (np.log(F3_rel_alpha) + np.log(F4_rel_alpha)))
+        feature = np.zeros(n_channel) + FAA
+    except:
+        feature = np.zeros(n_channel)
+    return feature
+
+def compute_periodic_pac_connectivity(data,sfreq=250,n=1024,method="tort",band=np.array([[4, 8],[30,45]]), n_surrogates=0,mode="self",approach_pac="mean"):
+
+    import matplotlib.pyplot as plt
+    from scipy.interpolate import interp1d
+    n_channel, n_times = data.shape
+    n=n_times
+    spectrum_frequencies = np.zeros((n_channel,n))
+    spectrum_phase = np.zeros((n_channel,n))
+    reconstructed_signal = np.zeros_like(data)
+    freqs = np.fft.fftfreq(n, 1 / sfreq)
+    for i_channel in range(n_channel):
+        fft_result = np.fft.fft(data[i_channel,:],n=n)
+        spectrum_frequencies[i_channel, :]=np.abs(fft_result)
+        spectrum_phase[i_channel,:] = np.angle(fft_result)
+    fg1 = FOOOFGroup(verbose=False)
+    fg1.fit(freqs, spectrum_frequencies)
+
+    # plt.plot(data[i_channel,:])
+    # plt.xlabel('time')
+    # plt.ylabel('y')
+    # plt.show()
+    #
+    # plt.plot(np.log(freqs), spectrum_frequencies[0, :])
+    # plt.xlabel('fre/log')
+    # plt.ylabel('ampli')
+    # plt.show()
+    #
+    # plt.plot(np.log(freqs), spectrum_phase[0, :])
+    # plt.xlabel('fre')
+    # plt.ylabel('phase')
+    # plt.show()
+
+    F=freqs
+    gaussian_values = np.zeros_like(spectrum_frequencies)
+    aps1 = fg1.get_params('gaussian_params')
+    #print(aps1)
+    gaussian_list=aps1[:,3]
+    for i_channel in range(n_channel):
+         i_channel_dx=np.where(gaussian_list==i_channel)[0]
+         for idx in i_channel_dx:
+            gaussian_values[i_channel,:] = aps1[idx,1] * norm.pdf(F, aps1[idx,0], aps1[idx,2])+gaussian_values[i_channel,:]
+    gaussian_values = np.power(10, gaussian_values)
+    for idx in np.where(freqs < 0)[0]:
+        fre__ = -freqs[idx]
+        try:
+            gaussian_values[:, idx] = gaussian_values[:, np.where(freqs == fre__)[0][0]]
+        except:
+            print(freqs[idx])
+
+
+    for i_channel in range(n_channel):
+        # amplitude_interp = interp1d(freqs, gaussian_values[i_channel,:], kind='linear', fill_value='extrapolate')
+        # phase_interp = interp1d(freqs, spectrum_phase[i_channel,:], kind='linear', fill_value='extrapolate')
+        # new_sampling_rate = n_times / (gaussian_values[i_channel,:].shape[0] - 1) * sfreq
+        # new_freq_vector = np.fft.fftfreq(n_times, d=1 / new_sampling_rate)
+        #
+        # # 插值得到新的幅值信号和相位信号
+        # new_amplitude = amplitude_interp(new_freq_vector)
+        # new_phase = phase_interp(new_freq_vector)
+        # reconstructed_signal[i_channel, :] = np.fft.ifft(
+        #     new_amplitude * np.exp(1j * new_phase))
+
+        reconstructed_signal[i_channel,:] = np.fft.ifft(gaussian_values[i_channel,:] * np.exp(1j * spectrum_phase[i_channel,:]))
+
+    # plt.plot(reconstructed_signal[i_channel,:])
+    # plt.xlabel('time')
+    # plt.ylabel('reconstructed_signal')
+    # plt.show()
+
+
+    feature=compute_pac_connectivity(reconstructed_signal,sfreq=sfreq, method=method, band=band, n_surrogates=n_surrogates,mode=mode,approach_pac=approach_pac)
+    return feature
+    
+   
+    
+    
+
+
+
+
 
 
 
