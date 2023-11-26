@@ -256,13 +256,43 @@ class MyTestCase(unittest.TestCase):
         #"definition_ln" "definition_ratio"  "eeglab" "definition_lnratio" "definition_ln_rel" "definition_ratio_rel" "definition_lnratio_rel"
         print(fea1.features)
         print(fea1.features.shape)
+    def test_multi_feature(self):
+        #spect_slope
+        #pow_freq_bands
+        #teager_kaiser_energy
+        # DFA
+        #Shannon_entropy
+        #ARMA_kalman_filter
+        #Harmonic_Parameters
+        #Median_Frequency
+        #Coherence        %%%
+        #WignerVilleDistribution
+        #Renyi_Entropy
+        #Tsallis_Entropy
+        #EMD
+        #hosa_bicoherence   %%%
+        #multiscale_sample_entropy
+        #multiscale_permutation_entropy
+        #fuzzy_entropy
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data = np.random.rand(1, 5, 1000)
+        data_one_channnel = np.expand_dims(data[:,0,:], axis=1)
+        print(data_one_channnel.shape)
+        fea1 = Feature(data=data, sfreq=250, selected_funcs =['hosa_bicoherence']).features
+        fea2 = Feature(data=data_one_channnel, sfreq=250, selected_funcs =['hosa_bicoherence']).features
+        print(fea1[:, 0,:].shape)
+        print(fea2.shape)
+        self.assertTrue(np.array_equal(np.expand_dims(fea1[:, 0,:], axis=1),fea2))
+
+
+
 
 
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_alpha')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_multi_feature')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

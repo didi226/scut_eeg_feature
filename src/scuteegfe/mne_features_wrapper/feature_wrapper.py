@@ -60,7 +60,7 @@ class Feature:
             self.__features_raw = features
 
         self.__features_raw = features
-        self.__features = rearrange(self.__features_raw, 'b (feature channel) -> b channel feature',
+        self.__features = rearrange(self.__features_raw, 'b (channel feature) -> b channel feature',
                                     channel=self.n_channel)
         self.__features_fix = False
     def __repr__(self):
@@ -132,12 +132,12 @@ class Feature:
     def features(self):
         if self.__features_fix is True:
             return self.__features
-        if np.isin('teager_kaiser_energy0', self.feature_names):
-            self.fix_teager_kaiser_energy(log=self.log_teager_kaiser_energy)
-            self.__features_fix = True
-        if np.isin('spect_slope0', self.feature_names):
-            self.fix_spect_slope()
-            self.__features_fix = True
+        # if np.isin('teager_kaiser_energy0', self.feature_names):
+        #     self.fix_teager_kaiser_energy(log=self.log_teager_kaiser_energy)
+        #     self.__features_fix = True
+        # if np.isin('spect_slope0', self.feature_names):
+        #     self.fix_spect_slope()
+        #     self.__features_fix = True
         return self.__features
 
     @features.setter
@@ -320,52 +320,52 @@ class Feature:
                     yticklabels=ch_names, xticklabels=Feature1.feature_names)
         return sta, p
 
-    def fix_teager_kaiser_energy(self, log=True):
-        """
-            mne_features 中，teager_kaiser_energy的特征排列方式其它特征相反，需修复
-        Parameters
-        ----------
-        log: bool, 是否取对数
+    # def fix_teager_kaiser_energy(self, log=True):
+    #     """
+    #         mne_features 中，teager_kaiser_energy的特征排列方式其它特征相反，需修复
+    #     Parameters
+    #     ----------
+    #     log: bool, 是否取对数
+    #
+    #     Returns
+    #     -------
+    #
+    #     """
+    #     teager_kaiser_energy_names = ['teager_kaiser_energy' + str(i) for i in
+    #                                   range(np.char.startswith(self.feature_names, 'teager_kaiser_energy').sum())]
+    #
+    #     get_index = lambda source, target: np.argwhere(source == target)[0, 0]
+    #     reorder = lambda source, target: [get_index(each, target) for each in source]
+    #     _rearrange_ = lambda features: rearrange(
+    #         rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
+    #         'n_sub (n_ch n_fea)-> n_sub n_ch n_fea', n_ch=self.n_channel)
+    #
+    #     ind = reorder(teager_kaiser_energy_names, self.feature_names)
+    #     if log:
+    #         self.__features[:, :, ind] = np.log10(_rearrange_(self.__features[:, :, ind]))
+    #     else:
+    #         self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
 
-        Returns
-        -------
-
-        """
-        teager_kaiser_energy_names = ['teager_kaiser_energy' + str(i) for i in
-                                      range(np.char.startswith(self.feature_names, 'teager_kaiser_energy').sum())]
-
-        get_index = lambda source, target: np.argwhere(source == target)[0, 0]
-        reorder = lambda source, target: [get_index(each, target) for each in source]
-        _rearrange_ = lambda features: rearrange(
-            rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
-            'n_sub (n_ch n_fea)-> n_sub n_ch n_fea', n_ch=self.n_channel)
-
-        ind = reorder(teager_kaiser_energy_names, self.feature_names)
-        if log:
-            self.__features[:, :, ind] = np.log10(_rearrange_(self.__features[:, :, ind]))
-        else:
-            self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
-
-    def fix_spect_slope(self):
-        """
-            mne_features 中，spect_slope的特征排列方式其它特征相反，需修复
-        Parameters
-        ----------
-        Returns
-        -------
-        """
-        spect_slope_names = ['spect_slope' + str(i) for i in
-                             range(np.char.startswith(self.feature_names, 'spect_slope').sum())]
-        print("Debug 模式下 rearrange 会错乱")
-        get_index = lambda source, target: np.argwhere(source == target)[0, 0]
-        reorder = lambda source, target: [get_index(each, target) for each in source]
-        _rearrange_ = lambda features: rearrange(
-            rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
-            'n_sub (n_ch n_fea)->  n_sub n_ch n_fea', n_ch=self.n_channel)
-
-        ind = reorder(spect_slope_names, self.feature_names)
-
-        self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
+    # def fix_spect_slope(self):
+    #     """
+    #         mne_features 中，spect_slope的特征排列方式其它特征相反，需修复
+    #     Parameters
+    #     ----------
+    #     Returns
+    #     -------
+    #     """
+    #     spect_slope_names = ['spect_slope' + str(i) for i in
+    #                          range(np.char.startswith(self.feature_names, 'spect_slope').sum())]
+    #     print("Debug 模式下 rearrange 会错乱")
+    #     get_index = lambda source, target: np.argwhere(source == target)[0, 0]
+    #     reorder = lambda source, target: [get_index(each, target) for each in source]
+    #     _rearrange_ = lambda features: rearrange(
+    #         rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
+    #         'n_sub (n_ch n_fea)->  n_sub n_ch n_fea', n_ch=self.n_channel)
+    #
+    #     ind = reorder(spect_slope_names, self.feature_names)
+    #
+    #     self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
 
     @staticmethod
     def moving_average_filter(data, window_size):

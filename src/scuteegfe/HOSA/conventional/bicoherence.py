@@ -44,7 +44,7 @@ def bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None):
     if nrecs ==1 and nsamp <= 0:
         nsamp = np.fix(ly / (8 - 7 * overlap / 100))
     if nfft < nsamp:
-        nfft = 2 ** nextpow2(nsamp)
+        nfft = nextpow2(nsamp)
 
     overlap = np.fix(nsamp * overlap / 100)
     nadvance = nsamp - overlap

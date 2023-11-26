@@ -43,7 +43,7 @@ def compute_DFA(data, sfreq=250, win_times=1):
     for i_section in range(section_num):
         for i_channel in range(n_channel):
             feature[i_channel,i_section] = ant.detrended_fluctuation(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 def compute_Shannon_entropy(data, sfreq=250,round_para=1, win_times=1):
     """
@@ -63,7 +63,7 @@ def compute_Shannon_entropy(data, sfreq=250,round_para=1, win_times=1):
     for i_section in range(section_num):
         for i_channel in range(n_channel):
             feature[i_channel,i_section]=ent.shannon_entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 def Tsallis_Entropy(time_series,alpha=2):
     """
@@ -149,7 +149,7 @@ def compute_ARMA_kalman_filter(data,AR_p=10,MA_q=1):
         arma_mod = ARIMA(data[i_channel,:], order=(AR_p, 0, MA_q))
         arma_res = arma_mod.fit()
         feature[i_channel,:]=np.concatenate([arma_res.polynomial_ar[1:], arma_res. polynomial_ma[1:]])
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 
 def get_fft_values(y, N=None, f_s=250):
@@ -201,7 +201,7 @@ def compute_Harmonic_Parameters(data,sfreq=250,
          #  feature[i_channel, i_band, 1] = frequency_band
            f_idx=find_nearest(f_,center_frequency)
            feature[i_channel, i_band]=fft_[f_idx]
-   feature = feature.T.reshape(-1)
+   feature = feature.reshape(-1)
    return feature
 def compute_Median_Frequency(data,sfreq=250,
                                 band=np.array([[0.5,2],[2, 4], [4, 5],
@@ -228,7 +228,7 @@ def compute_Median_Frequency(data,sfreq=250,
     for i_channel in range(n_channel):
        f_, fft_ = get_fft_values(data[i_channel, :],N=N, f_s=sfreq)
        feature[i_channel,:]=band_Median_Frequency(Pxx=fft_,f=f_,band=band)
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 def band_Median_Frequency(Pxx, f, band=None):
     """
@@ -273,6 +273,7 @@ def filter_bank(data,sfreq=250,frequences=None):
 def compute_Coherence(data,Co_channel=None,
             sfreq=250,band=np.array([[2, 3.8], [4, 7], [8, 13], [14, 30], [31, 48]])):
     """
+    %单通道不能调用这个相关函数
     相干性反映了来自不同导数的两个信号在某些频域中的线性相关程度。
     Automatic sleep scoring: A search for an optimal combination of measures
     :param data:          ndarray, shape (n_channels, n_times)
@@ -299,7 +300,7 @@ def compute_Coherence(data,Co_channel=None,
            ff,cxx=signal.coherence(x, y, fs=sfreq,
                             window='hann', nperseg=None, noverlap=None, nfft=None, detrend='constant', axis=- 1)
            feature[channel_0,channel_1,:]=band_DE(cxx,ff,Par_ratios=0,band=band)
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 def  compute_WignerVilleDistribution(data,sfreq=250 ):
     '''
@@ -318,7 +319,7 @@ def  compute_WignerVilleDistribution(data,sfreq=250 ):
                                                 timestamps=np.arange(n_times)*(1/sfreq))
         tfr_wvd, t_wvd, f_wvd = wvd.run()
         feature[i_channel,:]=np.polyfit(t_wvd, tfr_wvd[-1,:], 3)
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 
 def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
@@ -339,7 +340,7 @@ def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     for i_section in range(section_num):
         for i_channel in range(n_channel):
             feature[i_channel,i_section]=Renyi_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 def compute_Tsallis_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     """
@@ -359,12 +360,13 @@ def compute_Tsallis_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     for i_section in range(section_num):
         for i_channel in range(n_channel):
             feature[i_channel,i_section]=Tsallis_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 
 
 def compute_Hilbert_abs(data):
     """
+    ###这个函数暂时废置了
     希尔伯特包络
     :param data: ndarray, shape (n_channels, n_times)
     :return: ndarray, shape (n_channels,)
@@ -389,10 +391,11 @@ def compute_EMD(data, sfreq=250, EMD_times=1, EMD_params=6):
             IMFs = emd.emd(data[N_channel, N_length * EMD_length:(N_length + 1) * EMD_length])
             signal_imfs[N_channel, N_length, :, :] = IMFs[0:EMD_params, :]
     signal_imfs = signal_imfs.reshape((n_channel, -1))
-    feature = signal_imfs.T.reshape(-1)
+    feature = signal_imfs.reshape(-1)
     return feature
 def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None):
     '''
+    %%%%%%%测试有问题
     :param data:    ndarray, shape (n_channels, n_times)
     :param nfft:    fft length [default = power of two > segsamp]
                     actual size used is power of two greater than 'nsamp'
@@ -529,7 +532,7 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
             de_mean[de_mean == 0] = 1e-6
             de_mean = np.multiply(de_mean, np.log(de_mean))
         de[channel, :] = de_mean
-    feature = de.T.reshape(-1)
+    feature = de.reshape(-1)
     return feature
 def imp_extract_wavelet(section_data,Fs, time_sec,wavelet_name):
     f = np.arange(1, 129, 0.2)
@@ -608,7 +611,7 @@ def compute_detrended_fluctuation(data):
     return np.array([ant.detrended_fluctuation(each_channel) for each_channel in data])
 
 
-def compute_multiscale_entropy(data, sample_length=1, tolerance=None, maxscale=None):
+def compute_multiscale_sample_entropy(data, sample_length=1, tolerance=None, maxscale=None):
     """
     多尺度熵
     :param maxscale:
@@ -617,9 +620,15 @@ def compute_multiscale_entropy(data, sample_length=1, tolerance=None, maxscale=N
     :param data: ndarray, shape (n_channels, n_times)
     :return: ndarray, shape (n_channels, n_timepoints)
     """
-    return np.array(
-        [ent.multiscale_entropy
-         (each_channel, sample_length=sample_length, tolerance=tolerance, maxscale=maxscale) for each_channel in data])
+    n_channel, n_times = data.shape
+    if maxscale is None:
+        maxscale = n_times
+    multi_en_value = np.zeros((n_channel,maxscale))
+    for i_channel in range(n_channel):
+        multi_en_value[i_channel, :] = np.array(
+            ent.multiscale_entropy(data[i_channel, :], sample_length=sample_length, tolerance=tolerance, maxscale=maxscale))
+    feature = multi_en_value.reshape(-1)
+    return feature
 
 
 def compute_multiscale_permutation_entropy(data, m=1, delay=1, scale=1):
@@ -631,8 +640,12 @@ def compute_multiscale_permutation_entropy(data, m=1, delay=1, scale=1):
     :param scale:
     :return: ndarray, shape (n_channels,)
     """
-    return np.array([
-        ent.multiscale_permutation_entropy(each_channel, m, delay, scale) for each_channel in data]).reshape(-1)
+    n_channel, n_times = data.shape
+    multi_per_en_value = np.zeros((n_channel,scale))
+    for i_channel in  range(n_channel):
+        multi_per_en_value[i_channel,:]= np.array(ent.multiscale_permutation_entropy(data[i_channel,:], m, delay, scale))
+    feature = multi_per_en_value.reshape(-1)
+    return feature
 
 
 def compute_fuzzy_entropy(data,m=2, tau=1, r=(.2,2), Fx='default', Logx=np.exp(1)):
@@ -661,7 +674,7 @@ def compute_fuzzy_entropy(data,m=2, tau=1, r=(.2,2), Fx='default', Logx=np.exp(1
 
 
 
-
+##已经弃之
 def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],[8,10], [10,13], [13,20], [20,30], [30,45]]),
                  mode='eeg_rhythm', low_fq_range=None, low_fq_width=2., high_fq_range='auto',
                  high_fq_width='auto', method='tort', n_surrogates=0,n_jobs=1):
@@ -758,7 +771,7 @@ def  compute_stft_2019(data,sfreq=250,win_times=10,n_fre_idx=36):
                              detrend=False, boundary='zeros', padded=True)
             Y=10*np.log(abs(np.mean(Zxx[2:n_fre_idx*2+1:2,:],axis=1)))
             feature[i_channel, i_section] =Y
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 
 
@@ -836,7 +849,7 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
     elif kind in ['dtf','pdc']:
             feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
 
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 
 def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]), n_surrogates=0,mode="self",approach_pac="mean"):
@@ -885,7 +898,7 @@ def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8
                     feature[i_channel,j_channel] =  np.mean(pac_matrix)
                 elif approach_pac == "max":
                     feature[i_channel, j_channel] = np.max(pac_matrix)
-    feature = feature.reshape(-1)
+    feature = feature.T.reshape(-1)
     return feature
 
 
@@ -985,7 +998,7 @@ def compute_aperiodic_periodic_offset_exponent_cf(data,sfreq=250,n=1024,freq_ran
     #     feature[i_channel,2] = peak_i_channel[np.argmax(peak_i_channel[:,1]),0]
     # bands = Bands({'alpha': [8, 12]})
     # feature[:,3] = get_band_peak_fg(fg1, bands.alpha)[:,0]
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 def compute_offset_exponent_cf(data,sfreq=250,n=1024):
     from mne_features.univariate import compute_spect_slope
@@ -1000,7 +1013,7 @@ def compute_offset_exponent_cf(data,sfreq=250,n=1024):
     # intercept, slope,
     feature[:, :2]=slope_para[:, :2]
     feature[:,1]=-feature[:,1]
-    feature = feature.T.reshape(-1)
+    feature = feature.reshape(-1)
     return feature
 def compute_relative_power(data, sfreq=100, freq_bands=np.array([0.5, 4]), total_band = np.array([0.5, 50]),
                            ratios=None, ratios_triu=False,psd_method='welch', log=False, psd_params=None):
