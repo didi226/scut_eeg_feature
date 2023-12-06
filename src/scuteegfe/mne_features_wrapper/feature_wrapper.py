@@ -9,8 +9,6 @@ from copy import deepcopy
 import warnings
 import numbers
 
-
-
 class Feature:
     mne_defined_funcs = {'mean', 'variance', 'std', 'ptp_amp', 'skewness', 'kurtosis', 'rms', 'quantile',
                          'hurst_exp', 'app_entropy', 'samp_entropy', 'decorr_time', 'pow_freq_bands',
@@ -25,6 +23,7 @@ class Feature:
                                    'hjorth_complexity', 'higuchi_fd', 'katz_fd', 'zero_crossings', 'line_length',
                                    'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
                                    'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
+
 
     def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,
                  return_as_df=False, log_teager_kaiser_energy=False):
@@ -54,15 +53,16 @@ class Feature:
         self.example_data = data[0, 0][None, None]
         self.n_channel = data.shape[1]
         self.funcs_params = funcs_params
-
         features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
         if return_as_df:
             self.__features_raw = features
 
         self.__features_raw = features
-        self.__features = rearrange(self.__features_raw, 'b (channel feature) -> b channel feature',
+        self.__features = rearrange(self.__features_raw, 'b (feature channel) -> b channel feature',
                                     channel=self.n_channel)
         self.__features_fix = False
+        self.__list_multi_feature = ['teager_kaiser_energy0', 'spect_slope0',
+                          'energy_freq_bands0', 'wavelet_coef_energy0', 'pow_freq_bands0']
     def __repr__(self):
         if self.features is None:
             return 'you should input the data'
@@ -132,12 +132,9 @@ class Feature:
     def features(self):
         if self.__features_fix is True:
             return self.__features
-        # if np.isin('teager_kaiser_energy0', self.feature_names):
-        #     self.fix_teager_kaiser_energy(log=self.log_teager_kaiser_energy)
-        #     self.__features_fix = True
-        # if np.isin('spect_slope0', self.feature_names):
-        #     self.fix_spect_slope()
-        #     self.__features_fix = True
+        if np.any(np.isin(self.__list_multi_feature, self.feature_names)):
+            self.fix_multi_feature(log = self.log_teager_kaiser_energy)
+            self.__features_fix = True
         return self.__features
 
     @features.setter
@@ -319,54 +316,23 @@ class Feature:
         sns.heatmap(log10_p, square=True, center=thresh, cmap='coolwarm', vmin=-4, vmax=0,
                     yticklabels=ch_names, xticklabels=Feature1.feature_names)
         return sta, p
+    def fix_multi_feature(self,log=True):
+        present_features = [feature for feature in self.__list_multi_feature if feature in self.feature_names]
+        for multi_feature_name in present_features:
+            multi_feature_name = multi_feature_name [:-1]
+            multi_feature_name_names = [multi_feature_name + str(i) for i in
+                                          range(np.char.startswith(self.feature_names, multi_feature_name).sum())]
 
-    # def fix_teager_kaiser_energy(self, log=True):
-    #     """
-    #         mne_features 中，teager_kaiser_energy的特征排列方式其它特征相反，需修复
-    #     Parameters
-    #     ----------
-    #     log: bool, 是否取对数
-    #
-    #     Returns
-    #     -------
-    #
-    #     """
-    #     teager_kaiser_energy_names = ['teager_kaiser_energy' + str(i) for i in
-    #                                   range(np.char.startswith(self.feature_names, 'teager_kaiser_energy').sum())]
-    #
-    #     get_index = lambda source, target: np.argwhere(source == target)[0, 0]
-    #     reorder = lambda source, target: [get_index(each, target) for each in source]
-    #     _rearrange_ = lambda features: rearrange(
-    #         rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
-    #         'n_sub (n_ch n_fea)-> n_sub n_ch n_fea', n_ch=self.n_channel)
-    #
-    #     ind = reorder(teager_kaiser_energy_names, self.feature_names)
-    #     if log:
-    #         self.__features[:, :, ind] = np.log10(_rearrange_(self.__features[:, :, ind]))
-    #     else:
-    #         self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
-
-    # def fix_spect_slope(self):
-    #     """
-    #         mne_features 中，spect_slope的特征排列方式其它特征相反，需修复
-    #     Parameters
-    #     ----------
-    #     Returns
-    #     -------
-    #     """
-    #     spect_slope_names = ['spect_slope' + str(i) for i in
-    #                          range(np.char.startswith(self.feature_names, 'spect_slope').sum())]
-    #     print("Debug 模式下 rearrange 会错乱")
-    #     get_index = lambda source, target: np.argwhere(source == target)[0, 0]
-    #     reorder = lambda source, target: [get_index(each, target) for each in source]
-    #     _rearrange_ = lambda features: rearrange(
-    #         rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
-    #         'n_sub (n_ch n_fea)->  n_sub n_ch n_fea', n_ch=self.n_channel)
-    #
-    #     ind = reorder(spect_slope_names, self.feature_names)
-    #
-    #     self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
-
+            get_index = lambda source, target: np.argwhere(source == target)[0, 0]
+            reorder = lambda source, target: [get_index(each, target) for each in source]
+            _rearrange_ = lambda features: rearrange(
+                rearrange(features, 'n_sub n_ch n_fea-> n_sub (n_fea n_ch)'),
+                'n_sub (n_ch n_fea)-> n_sub n_ch n_fea', n_ch=self.n_channel)
+            ind = reorder(multi_feature_name_names, self.feature_names)
+            if log and multi_feature_name =='teager_kaiser_energy':
+                self.__features[:, :, ind] = np.log10(_rearrange_(self.__features[:, :, ind]))
+            else:
+                self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
     @staticmethod
     def moving_average_filter(data, window_size):
         filtered_data = []

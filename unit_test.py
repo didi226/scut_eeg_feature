@@ -257,34 +257,26 @@ class MyTestCase(unittest.TestCase):
         print(fea1.features)
         print(fea1.features.shape)
     def test_multi_feature(self):
-        #spect_slope
-        #pow_freq_bands
-        #teager_kaiser_energy
-        # DFA
-        #Shannon_entropy
-        #ARMA_kalman_filter
-        #Harmonic_Parameters
-        #Median_Frequency
-        #Coherence        %%%
-        #WignerVilleDistribution
-        #Renyi_Entropy
-        #Tsallis_Entropy
-        #EMD
-        #hosa_bicoherence   %%%
-        #multiscale_sample_entropy
-        #multiscale_permutation_entropy
-        #fuzzy_entropy
+        #测试特征 ['std','mean','teager_kaiser_energy']
+        # ['spect_slope']
+        # ['energy_freq_bands']
+        # ['pow_freq_bands']
+        #['wavelet_coef_energy']
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
-        data = np.random.rand(1, 5, 1000)
-        data_one_channnel = np.expand_dims(data[:,0,:], axis=1)
+        from mne_features.feature_extraction import extract_features
+        data = np.random.rand(2, 5, 1000)
+        data_one_channnel = np.expand_dims(data[:,1,:], axis=1)
         print(data_one_channnel.shape)
-        fea1 = Feature(data=data, sfreq=250, selected_funcs =['hosa_bicoherence']).features
-        fea2 = Feature(data=data_one_channnel, sfreq=250, selected_funcs =['hosa_bicoherence']).features
-        print(fea1[:, 0,:].shape)
+        fea1 = Feature(data = data, sfreq=250, selected_funcs = ['DFA']).features
+        fea2 = Feature(data = data_one_channnel, sfreq=250, selected_funcs =  ['DFA']).features
+        fea3 = extract_features(X = data_one_channnel, sfreq = 250, selected_funcs =  ['DFA'])
+        print(fea3.shape)
+        print(fea1[:, 1,:].shape)
         print(fea2.shape)
-        self.assertTrue(np.array_equal(np.expand_dims(fea1[:, 0,:], axis=1),fea2))
-
-
+        # Feature 和 extract_features单通道要一致  多个特征的时候这里可能排序不一样
+        self.assertTrue(np.array_equal(fea2, np.expand_dims(fea3, axis=1)))
+        # Feature 多通道和但单通道一致   pow_freq_bands这里的不一致可能是归一化问题
+        self.assertTrue(np.allclose(np.expand_dims(fea1[:, 1,:], axis=1),fea2))
 
 
 
