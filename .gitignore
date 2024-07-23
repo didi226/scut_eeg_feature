@@ -1,8 +1,10 @@
 *build*
 *egg-info*
-*~
 *.mat
-*.ipynb
+*~
+*.npy
+*.npz
+*.pdf
 **/__pycache__
 /test
 *.idea/

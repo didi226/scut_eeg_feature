@@ -22,24 +22,18 @@ import matplotlib.pyplot as plt
 
 
 def mvar_generate(A, n, sigma, burnin=500):
-    """Simulate MVAR process
+    """
+    Simulate a Multivariate AutoRegressive (MVAR) process.
 
-    Parameters
-    ----------
-    A : ndarray, shape (p, N, N)
-        The AR coefficients where N is the number of signals
-        and p the order of the model.
-    n : int
-        The number of time samples.
-    sigma : array, shape (N,)
-        The noise for each time series
-    burnin : int
-        The length of the burnin period (in samples).
+    Args:
+        A (ndarray): AR coefficients with shape (p, N, N), where N is the number of signals
+                     and p is the order of the model.
+        n (int): Number of time samples.
+        sigma (array): Noise for each time series, shape (N,).
+        burnin (int): Length of the burn-in period (in samples). Default is 500.
 
-    Returns
-    -------
-    X : ndarray, shape (N, n)
-        The N time series of length n
+    Returns:
+        ndarray: Time series data of shape (N, n) after burn-in.
     """
     p, N, N = A.shape
     A_2d = np.concatenate(A, axis=1)
@@ -57,17 +51,15 @@ def mvar_generate(A, n, sigma, burnin=500):
 
 
 def cov(X, p):
-    """vector autocovariance up to order p
+    """
+    Compute vector autocovariance up to order p.
 
-    Parameters
-    ----------
-    X : ndarray, shape (N, n)
-        The N time series of length n
+    Args:
+        X (ndarray): Time series data of shape (N, n).
+        p (int): Order of the model.
 
-    Returns
-    -------
-    R : ndarray, shape (p + 1, N, N)
-        The autocovariance up to order p
+    Returns:
+        ndarray: Autocovariance up to order p with shape (p + 1, N, N).
     """
     N, n = X.shape
     R = np.zeros((p + 1, N, N))
@@ -77,22 +69,15 @@ def cov(X, p):
 
 
 def mvar_fit(X, p):
-    """Fit MVAR model of order p using Yule Walker
+    """
+    Fit an MVAR model of order p using the Yule-Walker method.
 
-    Parameters
-    ----------
-    X : ndarray, shape (N, n)
-        The N time series of length n
-    n_fft : int
-        The length of the FFT
+    Args:
+        X (ndarray): Time series data of shape (N, n).
+        p (int): Order of the model.
 
-    Returns
-    -------
-    A : ndarray, shape (p, N, N)
-        The AR coefficients where N is the number of signals
-        and p the order of the model.
-    sigma : array, shape (N,)
-        The noise for each time series
+    Returns:
+        tuple: AR coefficients (ndarray of shape (p, N, N)) and noise (array of shape (N,)).
     """
     N, n = X.shape
     gamma = cov(X, p)  # gamma(r,i,j) cov between X_i(0) et X_j(r)
@@ -120,21 +105,15 @@ def mvar_fit(X, p):
 
 
 def compute_order(X, p_max):
-    """Estimate AR order with BIC
+    """
+    Estimate the AR order using Bayesian Information Criterion (BIC).
 
-    Parameters
-    ----------
-    X : ndarray, shape (N, n)
-        The N time series of length n
-    p_max : int
-        The maximum model order to test
+    Args:
+        X (ndarray): Time series data of shape (N, n).
+        p_max (int): Maximum model order to test.
 
-    Returns
-    -------
-    p : int
-        Estimated order
-    bic : ndarray, shape (p_max + 1,)
-        The BIC for the orders from 0 to p_max.
+    Returns:
+        tuple: Estimated order (int) and BIC values for orders from 0 to p_max (ndarray of shape (p_max + 1,)).
     """
     N, n = X.shape
 
@@ -166,20 +145,16 @@ def compute_order(X, p_max):
 
 
 def spectral_density(A, n_fft=None,sfreq=250):
-    """Estimate PSD from AR coefficients
+    """
+    Estimate Power Spectral Density (PSD) from AR coefficients.
 
-    Parameters
-    ----------
-    A : ndarray, shape (p, N, N)
-        The AR coefficients where N is the number of signals
-        and p the order of the model.
-    n_fft : int
-        The length of the FFT
+    Args:
+        A (ndarray): AR coefficients with shape (p, N, N).
+        n_fft (int, optional): Length of the FFT. Defaults to None.
+        sfreq (int): Sampling frequency. Default is 250.
 
-    Returns
-    -------
-    fA : ndarray, shape (n_fft, N, N)
-        The estimated spectral density.
+    Returns:
+        tuple: Spectral density (ndarray of shape (n_fft, N, N)) and frequencies (ndarray of shape (n_fft,)).
     """
     p, N, N = A.shape
     if n_fft is None:
@@ -196,22 +171,17 @@ def spectral_density(A, n_fft=None,sfreq=250):
 
 
 def dtf(A, sigma=None, n_fft=None,sfreq=250):
-    """Direct Transfer Function (DTF)
+    """
+    Compute the Direct Transfer Function (DTF).
 
-    Parameters
-    ----------
-    A : ndarray, shape (p, N, N)
-        The AR coefficients where N is the number of signals
-        and p the order of the model.
-    sigma : array, shape (N, )
-        The noise for each time series
-    n_fft : int
-        The length of the FFT
+    Args:
+        A (ndarray): AR coefficients with shape (p, N, N).
+        sigma (array, optional): Noise for each time series. Defaults to None.
+        n_fft (int, optional): Length of the FFT. Defaults to None.
+        sfreq (int): Sampling frequency. Default is 250.
 
-    Returns
-    -------
-    D : ndarray, shape (n_fft, N, N)
-        The estimated DTF
+    Returns:
+        tuple: DTF matrix (ndarray of shape (n_fft, N, N)) and frequencies (ndarray of shape (n_fft,)).
     """
     p, N, N = A.shape
 
@@ -234,22 +204,17 @@ def dtf(A, sigma=None, n_fft=None,sfreq=250):
 
 
 def pdc(A, sigma=None, n_fft=None,sfreq=250):
-    """Partial directed coherence (PDC)
+    """
+    Compute Partial Directed Coherence (PDC).
 
-    Parameters
-    ----------
-    A : ndarray, shape (p, N, N)
-        The AR coefficients where N is the number of signals
-        and p the order of the model.
-    sigma : array, shape (N,)
-        The noise for each time series.
-    n_fft : int
-        The length of the FFT.
+    Args:
+        A (ndarray): AR coefficients with shape (p, N, N).
+        sigma (array, optional): Noise for each time series. Defaults to None.
+        n_fft (int, optional): Length of the FFT. Defaults to None.
+        sfreq (int): Sampling frequency. Default is 250.
 
-    Returns
-    -------
-    P : ndarray, shape (n_fft, N, N)
-        The estimated PDC.
+    Returns:
+        tuple: PDC matrix (ndarray of shape (n_fft, N, N)) and frequencies (ndarray of shape (n_fft,)).
     """
     p, N, N = A.shape
 
@@ -273,7 +238,13 @@ def pdc(A, sigma=None, n_fft=None,sfreq=250):
 
 
 def plot_all(freqs, P, name):
-    """Plot grid of subplots
+    """
+    Plot a grid of subplots for visualizing the PDC or DTF matrices.
+
+    Args:
+        freqs (ndarray): Frequencies.
+        P (ndarray): PDC or DTF matrix of shape (n_fft, N, N).
+        name (str): Title for the plot.
     """
     m, N, N = P.shape
     pos_freqs = freqs[freqs >= 0]
@@ -288,13 +259,22 @@ def plot_all(freqs, P, name):
     plt.tight_layout()
 def calculate_dtf_pdc(X,sfreq=250,kind='dtf',p=None,normalize_=True,filter_bank=None):
     """
+    Calculate the Direct Transfer Function (DTF) or Partial Directed Coherence (PDC)
+    from multivariate time series data.
+
     Args:
-        X:          narray   shape(n_channel,n_times)
-        method:
-        p:          建模的阶数
+        X (ndarray): Time series data with shape (n_channel, n_times).
+        sfreq (int): Sampling frequency in Hz. Default is 250.
+        kind (str): Type of measure to compute. Options are 'dtf' for Direct Transfer Function
+                    or 'pdc' for Partial Directed Coherence. Default is 'dtf'.
+        p (int, optional): Order of the AR model. If None, the order will be estimated using BIC.
+        normalize_ (bool): Whether to normalize the resulting matrix. Default is True.
+        filter_bank (tuple, optional): Frequency range to filter. If provided, it should be a tuple
+                                        (low_freq, high_freq). The output will be filtered to
+                                        include only the frequencies within this range.
 
-    Returns:        dtf矩阵
-
+    Returns:
+        ndarray: The computed matrix (DTF or PDC) with shape (n_channel, n_channel).
     """
     n_channel, n_times=X.shape
     if p is None:

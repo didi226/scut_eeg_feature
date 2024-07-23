@@ -158,9 +158,11 @@ class MyTestCase(unittest.TestCase):
                        funcs_params={})
         print(fea1.features.shape)
         print(data1)
-        feature2=fea1.feature_smooth(fea1.features,smooth_type="UnscentedKalmanFilter_sigmoid",window_size=3)
+        feature1=fea1.features
+        feature2 = fea1.feature_smooth(fea1.features,smooth_type="UnscentedKalmanFilter_sigmoid",window_size=3)
         #feature2 = fea1.feature_smooth(fea1.features, smooth_type="lds", window_size=3)
         print(feature2)
+        print(fea1.features==feature2)
     def  test_compute_correlation_matrix(self):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
         from nilearn.connectome import ConnectivityMeasure
@@ -230,16 +232,9 @@ class MyTestCase(unittest.TestCase):
 
     def test_offset_exponent_cf(self):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
-        import scipy.io as sio
         ###构造随机矩阵
-        mat_data = sio.loadmat(r"D:\files_save\Data\Pazhou-RS-45Hz\mat\stu_ss65_0701.mat")['eo_output'][:,:,:1000]
-        # fea2 = Feature(data=mat_data, sfreq=250,selected_funcs=['offset_exponent_cf'],
-        #                funcs_params={"offset_exponent_cf__n":512})
-        # print(fea2.features.shape)
-        #
-        # print(fea2.features[1,:,1])
-        fea1 = Feature(data=mat_data, sfreq=250,selected_funcs=['aperiodic_periodic_offset_exponent_cf'],
-                       funcs_params={"aperiodic_periodic_offset_exponent_cf__n":512})
+        data = np.random.rand(10, 20, 500)
+        fea1 = Feature(data=data, sfreq=250,selected_funcs=['aperiodic_periodic_offset_exponent_cf'])
         print(fea1.features.shape)
         print(fea1.features[1,:,1])
 
@@ -278,13 +273,39 @@ class MyTestCase(unittest.TestCase):
         # Feature 多通道和但单通道一致   pow_freq_bands这里的不一致可能是归一化问题
         self.assertTrue(np.allclose(np.expand_dims(fea1[:, 1,:], axis=1),fea2))
 
+    def test_multi_feature_my_feature(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        from mne_features.feature_extraction import extract_features
+        data = np.random.rand(2, 5, 1000)
+        data_one_channnel = np.expand_dims(data[:, 1, :], axis=1)
+        print(data_one_channnel.shape)
+        fea1 = Feature(data=data, sfreq=250, selected_funcs=['DFA','fuzzy_entropy','multiscale_permutation_entropy',
+                                            'Renyi_Entropy','Median_Frequency']).features
+        fea2 = Feature(data=data_one_channnel, sfreq=250, selected_funcs=['DFA','fuzzy_entropy','multiscale_permutation_entropy',
+                                             'Renyi_Entropy','Median_Frequency']).features
+
+        print(fea1[:, 1, :].shape)
+        print(fea2.shape)
+        # Feature 多通道和但单通道一致   pow_freq_bands这里的不一致可能是归一化问题
+        self.assertTrue(np.array_equal(np.expand_dims(fea1[:, 1, :], axis=1), fea2))
+    def test_pow_freq_bands_remove_periodic(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data = np.random.rand(2, 10, 1000)
+        fea1 = Feature(data=data, sfreq = 250, selected_funcs=['pow_freq_bands_remove_aperiodic'],
+            funcs_params={"pow_freq_bands_remove_aperiodic__freq_bands": np.array([[1, 4], [4, 8], [8, 12], [12, 30], [30, 40]]),
+                          "pow_freq_bands_remove_aperiodic__freq_range":[1, 40],
+                       "pow_freq_bands_remove_aperiodic__psd_method":'welch'}
+                       ).features
+        print(fea1.shape)
+
+
 
 
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_multi_feature')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_feature_smooth')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

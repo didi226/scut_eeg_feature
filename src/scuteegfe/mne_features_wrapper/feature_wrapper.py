@@ -28,15 +28,32 @@ class Feature:
     def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,
                  return_as_df=False, log_teager_kaiser_energy=False):
         """
-        计算特征
+        Initialize the feature extractor.
 
-        :param data: ndarray, (n_samples, n_channels, n_features)
-        :param sfreq: 采样频率
-        :param selected_funcs: 要计算的特征
-        :param funcs_params: 参数
-        :param n_jobs: 进程数
-        :param ch_names: 通道名
-        :param return_as_df: 以pandas.Dataframe格式输出
+        Args:
+            data (ndarray, optional): Input data with shape (n_samples, n_channels, n_features). If None, only available features will be printed.
+            sfreq (int, optional): Sampling frequency, default is 250 Hz.
+            selected_funcs (list of str, optional): List of feature function names to compute. If None, default functions will be used.
+            funcs_params (dict, optional): Parameters for feature functions. If None, default parameters will be used.
+            n_jobs (int, optional): Number of processes to use, default is 1.
+            ch_names (list of str, optional): List of channel names. If None, channel names will not be used.
+            return_as_df (bool, optional): Whether to return features as a pandas.DataFrame. Default is False.
+            log_teager_kaiser_energy (bool, optional): Whether to compute the logarithm of Teager-Kaiser energy. Default is False.
+
+        Warns:
+            UserWarning: Issued if sfreq is not equal to 250.
+
+        Attributes:
+            funcs (list of callable): List of feature functions to compute.
+            feature_names_order (list of str): Order of feature names.
+            example_data (ndarray): Example data with shape (1, 1).
+            n_channel (int): Number of channels in the data.
+            funcs_params (dict): Parameters for feature functions.
+            __features_raw (ndarray): Raw computed features.
+            __features (ndarray): Features rearranged for output.
+            __features_fix (bool): Flag indicating if features have been fixed.
+            __list_multi_feature (list of str): List of multi-feature names.
+
         """
         if data is None:
             print('available features:', self.mne_defined_funcs)
@@ -64,6 +81,16 @@ class Feature:
         self.__list_multi_feature = ['teager_kaiser_energy0', 'spect_slope0',
                           'energy_freq_bands0', 'wavelet_coef_energy0', 'pow_freq_bands0']
     def __repr__(self):
+        """
+        Generate a string representation of the FeatureExtractor instance.
+
+        If the features attribute is None, a prompt to input data is returned. Otherwise,
+        the string representation includes the number of epochs, channels, and features,
+        along with the feature names.
+
+        Returns:
+            str: String representation of the FeatureExtractor instance.
+        """
         if self.features is None:
             return 'you should input the data'
         else:
@@ -72,6 +99,22 @@ class Feature:
                    + '\nfeature names: ' + str(self.feature_names)
 
     def get_funcs(self, selected_funcs):
+        """
+         Retrieve custom feature decomposition functions based on selected function names.
+
+         Args:
+             selected_funcs (list of str or list of tuple): List of feature function names or tuples of
+                 (function name, function reference) to retrieve.
+
+         Returns:
+             tuple: A tuple containing:
+                 - funcs (set of tuple): A set of tuples where each tuple is (function name, function reference).
+                 - feature_names_order (list of str): List of feature function names in the order they were provided.
+
+         Raises:
+             AttributeError: If the format of `selected_funcs` is not valid.
+
+        """
         # 获取自定义的特征分解函数
         selected_funcs = list(selected_funcs)
         for i, each in enumerate(selected_funcs):
@@ -93,9 +136,14 @@ class Feature:
 
     def fix_missing(self):
         """
-        修复异常值
-        Returns
-        -------
+        Fix missing values in the features.
+
+        This method uses the mean strategy to impute missing values. If the mean strategy fails,
+        it falls back to using a constant strategy with a fill value of 0.
+
+        Returns:
+            FeatureExtractor: A new instance of FeatureExtractor with missing values imputed.
+
         """
         from sklearn.impute import SimpleImputer
         imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
@@ -115,10 +163,10 @@ class Feature:
 
     def reorder(self):
         """
-        按首字母排列特征
-        Returns
-        -------
+        Reorder features alphabetically by their names.
 
+        Returns:
+            FeatureExtractor: A new instance of FeatureExtractor with features reordered alphabetically.
         """
         features = self.features
         feature_names = self.feature_names
@@ -130,6 +178,12 @@ class Feature:
 
     @property
     def features(self):
+        """
+        Get the features with possible multi-feature fixing.
+
+        Returns:
+            ndarray: The features array.
+        """
         if self.__features_fix is True:
             return self.__features
         if np.any(np.isin(self.__list_multi_feature, self.feature_names)):
@@ -139,10 +193,22 @@ class Feature:
 
     @features.setter
     def features(self, features):
+        """
+        Set the features array.
+
+        Args:
+            features (ndarray): The new features array.
+        """
         self.__features = features
 
     @property
     def feature_names(self):
+        """
+        Get the feature names.
+
+        Returns:
+            ndarray: Array of feature names.
+        """
         if self.__feature_names is not None:
             return self.__feature_names
         feature_names = []
@@ -180,16 +246,24 @@ class Feature:
 
     @feature_names.setter
     def feature_names(self, f_names):
+        """
+        Get the feature names.
+
+        Returns:
+            ndarray: Array of feature names.
+        """
         self.__feature_names = f_names
 
     def get_data(self,n_sample_list=None):
         """
-        获取特征向量数组features 对原特征向量数组features在第0个维度上进行索引和切片
-        Args:
-            n_sample_list:
+       Get the feature vector array.
 
-        Returns: fea         narray   原特征数据或者切片后的特征数据
-        """
+       Args:
+           n_sample_list (list, optional): List of sample indices to slice the features array. Defaults to None.
+
+       Returns:
+           ndarray: The original or sliced features array.
+       """
         if n_sample_list is None:
               fea= self.features
               return fea
@@ -202,23 +276,23 @@ class Feature:
 
     def copy(self):
         """
-        Copy the instance of Feature.
-        Returns
-        -------
-        Feature : instance of Feature
-            A copy of the object.
-        """
+       Copy the instance of Feature.
+
+       Returns:
+           Feature: A copy of the object.
+       """
         Feature = deepcopy(self)
         return Feature
 
     def __getitem__(self, item):
         """
-        对类Feature在采样维度上进行切片，.features 切片 其他属性保持不变
+        Slice the Feature instance on the sample dimension.
+
         Args:
-            item:
+            item (slice): Slice object for indexing the features array.
 
         Returns:
-           a new instance of  Feature with new .features
+            Feature: A new instance of Feature with sliced features.
         """
         cls = type(self)
         Feature = self.copy()
@@ -231,18 +305,14 @@ class Feature:
     @staticmethod
     def plot_feature_sns(Feature1, Feature2, ch_names, sub_type1='type1', sub_type2='type2'):
         """
+        Plot features using seaborn.
 
-        Parameters
-        ----------
-        Feature1: Feature instance
-        Feature2: Feature instance
-        ch_names: list, 通道名
-        sub_type1: 所属数据集类型描述
-        sub_type2: 所属数据集类型描述
-
-        Returns
-        -------
-
+        Args:
+            Feature1 (Feature): First Feature instance.
+            Feature2 (Feature): Second Feature instance.
+            ch_names (list): List of channel names.
+            sub_type1 (str, optional): Description of the first dataset type. Defaults to 'type1'.
+            sub_type2 (str, optional): Description of the second dataset type. Defaults to 'type2'.
         """
         fea1 = Feature1.features
         fea2 = Feature2.features
@@ -271,6 +341,22 @@ class Feature:
 
     @staticmethod
     def feature_df2plot(features, feature_names, ch_names, sub_type='sub_type_1'):
+        """
+        Convert features to a DataFrame for plotting.
+
+        This method organizes features, feature names, and channel names into a pandas DataFrame,
+        which can be used for visualization purposes, particularly with seaborn.
+
+        Args:
+            features (ndarray): The feature array with shape (n_samples, n_channels, n_features).
+            feature_names (list): List of feature names.
+            ch_names (list): List of channel names.
+            sub_type (str, optional): Description of the dataset type. Defaults to 'sub_type_1'.
+
+        Returns:
+            pandas.DataFrame: DataFrame containing the features, channel names, type, and values,
+                              structured for plotting.
+        """
         from einops import repeat, rearrange
         fea_names = repeat(np.array(feature_names), 'n_f -> (n_epoch n_ch n_f)', n_epoch=features.shape[0],
                            n_ch=features.shape[1])
@@ -288,16 +374,18 @@ class Feature:
     @staticmethod
     def ttest_feature(Feature1, Feature2, ch_names):
         """
-        run ttest and visualize Pvalue using heatmap
-        Parameters
-        ----------
-        Feature1: Feature instance
-        Feature2: Feature instance
-        ch_names: list, 通道名
+        Run t-test and visualize p-values using a heatmap.
 
-        Returns
-        -------
+        This function performs a t-test between the features of two Feature instances and visualizes the p-values
+        using a heatmap. The heatmap shows the -log10 of the p-values for better visualization.
 
+        Args:
+            Feature1 (Feature): An instance of the Feature class.
+            Feature2 (Feature): Another instance of the Feature class.
+            ch_names (list): List of channel names.
+
+        Returns:
+            tuple: A tuple containing the t-statistics and p-values.
         """
         assert Feature1.features is not None and Feature2.features is not None
         from scipy import stats
@@ -317,6 +405,19 @@ class Feature:
                     yticklabels=ch_names, xticklabels=Feature1.feature_names)
         return sta, p
     def fix_multi_feature(self,log=True):
+        """
+            Fix multi-feature data by rearranging it.
+
+            This function rearranges the multi-feature data to ensure proper alignment and, optionally,
+            applies a logarithmic transformation to the 'teager_kaiser_energy' feature.
+
+            Args:
+                log (bool, optional): If True, applies a logarithmic transformation to the 'teager_kaiser_energy' feature.
+                                      Defaults to True.
+
+            Returns:
+                None
+        """
         present_features = [feature for feature in self.__list_multi_feature if feature in self.feature_names]
         for multi_feature_name in present_features:
             multi_feature_name = multi_feature_name [:-1]
@@ -333,8 +434,21 @@ class Feature:
                 self.__features[:, :, ind] = np.log10(_rearrange_(self.__features[:, :, ind]))
             else:
                 self.__features[:, :, ind] = _rearrange_(self.__features[:, :, ind])
+
     @staticmethod
     def moving_average_filter(data, window_size):
+        """
+        Apply a moving average filter to the data.
+
+        This function applies a moving average filter with a specified window size to smooth the data.
+
+        Args:
+            data (array-like): The input data to be filtered.
+            window_size (int): The size of the moving window.
+
+        Returns:
+            ndarray: The filtered data.
+        """
         filtered_data = []
         window = [0] * window_size  # Initialize a window of size `window_size` with zeros
         for i in range(len(data)):
@@ -346,6 +460,18 @@ class Feature:
 
     @staticmethod
     def lsd_KalmanFilter(data, window_size):
+        """
+        Apply a Kalman Filter for smoothing data.
+
+        This function uses a Kalman Filter to smooth the input data within a specified window size.
+
+        Args:
+            data (array-like): The input data to be smoothed.
+            window_size (int): The size of the processing window.
+
+        Returns:
+            ndarray: The smoothed data.
+        """
         from pykalman import KalmanFilter
         window_num = data.shape[0] // window_size
         smoothed_feature = []
@@ -357,18 +483,15 @@ class Feature:
             if end_idx > data.shape[0]:
                 end_idx = data.shape[0]
             data_window = data[begin_idx:end_idx]
-
-
             transition_covariance = np.diag([0.1, 0.1])
             transition_covariance = 0.1
             observation_covariance = 0.001
             initial_state_mean = np.mean(data_window)
             initial_state_covariance = 1
-
-            kf = KalmanFilter(transition_covariance = transition_covariance,
-                              observation_covariance = observation_covariance,
-                initial_state_mean=initial_state_mean,
-                initial_state_covariance=initial_state_covariance)
+            kf = KalmanFilter(transition_covariance=transition_covariance,
+                              observation_covariance=observation_covariance,
+                              initial_state_mean=initial_state_mean,
+                              initial_state_covariance=initial_state_covariance)
             # Estimate the parameters using the EM algorithm
             kf = kf.em(data_window)
             estimated_A = kf.transition_matrices
@@ -380,8 +503,24 @@ class Feature:
             smoothed_feature.extend(smoothed_state_means.flatten())
         smoothed_feature = np.array(smoothed_feature)
         return smoothed_feature
+
     @staticmethod
-    def lsd_UnscentedKalmanFilter(data, window_size,observation_functions_type=None):
+    def lsd_UnscentedKalmanFilter(data, window_size, observation_functions_type=None):
+        """
+        Apply an Unscented Kalman Filter for smoothing data.
+
+        This function uses an Unscented Kalman Filter to smooth the input data within a specified window size.
+        It supports optional sigmoid observation functions.
+
+        Args:
+            data (array-like): The input data to be smoothed.
+            window_size (int): The size of the processing window.
+            observation_functions_type (str, optional): The type of observation function. If 'sigmoid', applies a
+                                                        sigmoid-based observation function. Defaults to None.
+
+        Returns:
+            ndarray: The smoothed data.
+        """
         from pykalman import UnscentedKalmanFilter
         window_num = data.shape[0] // window_size
         smoothed_feature = []
@@ -402,7 +541,6 @@ class Feature:
                 end_idx = data.shape[0]
             data_window = data[begin_idx:end_idx]
 
-
             transition_covariance = 0.1
             observation_covariance = 0.001
             if observation_functions_type == "sigmoid":
@@ -412,37 +550,44 @@ class Feature:
                 initial_state_mean = np.mean(data_window)
             initial_state_covariance = 1
             kf = UnscentedKalmanFilter(
-                observation_functions = measurement_function,
-                 transition_covariance = transition_covariance,
-                 observation_covariance = observation_covariance,
-                                       initial_state_mean = initial_state_mean,
-                                       initial_state_covariance = initial_state_covariance
-                                       )
+
+                observation_functions=measurement_function,
+                transition_covariance=transition_covariance,
+                observation_covariance=observation_covariance,
+                initial_state_mean=initial_state_mean,
+                initial_state_covariance=initial_state_covariance
+            )
 
             smoothed_state_means, smoothed_state_covs = kf.smooth(data_window)
             smoothed_feature.extend(smoothed_state_means.flatten())
         smoothed_feature = np.array(smoothed_feature)
         return smoothed_feature
 
-
     def feature_smooth(self, data, smooth_type="lds", window_size=10):
         """
-        Args:
-            refernce
-            [1]Duan R N, Zhu J Y, Lu B L. Differential entropy feature for EEG-based emotion classification[C]//2013
-            6th International IEEE/EMBS Conference on Neural Engineering (NER). IEEE, 2013: 81-84.
-            [2]Shi L C, Lu B L. Off-line and on-line vigilance estimation based on linear dynamical system and manifold
-            learning[C]//2010 Annual International Conference of the IEEE Engineering in Medicine and Biology. IEEE, 2010: 6587-6590.
-            [3]Zheng W L, Zhu J Y, Lu B L. Identifying stable patterns over time for emotion recognition from
-            EEG[J]. IEEE Transactions on Affective Computing, 2017, 10(3): 417-429.
+        Smooth features using specified smoothing techniques.
 
-            data:                        narray      shape (n_eopoch,n_channel,n_feature)
-            smooth_type:                 str         "mv_av_filter"   move average filter
-                                                     "lds"             linear dynamic system (LDS) approach
-            window_size:                 int
+        This function smooths the features using various smoothing techniques, including moving average filter,
+        linear dynamical system (LDS) approach, and Unscented Kalman Filter. The method and window size for
+        smoothing can be specified.
+
+        Args:
+            data (ndarray): The input data with shape (n_epoch, n_channel, n_feature).
+            smooth_type (str, optional): The type of smoothing technique to use. Options are:
+                - "mv_av_filter": Moving average filter
+                - "lds": Linear dynamic system (LDS) approach
+                - "UnscentedKalmanFilter": Unscented Kalman Filter
+                - "UnscentedKalmanFilter_sigmoid": Unscented Kalman Filter with sigmoid function
+                Defaults to "lds".
+            window_size (int, optional): The size of the processing window. Defaults to 10.
 
         Returns:
+            ndarray: The smoothed data.
 
+        References:
+            Duan R N, Zhu J Y, Lu B L. Differential entropy feature for EEG-based emotion classification[C]//2013 6th International IEEE/EMBS Conference on Neural Engineering (NER). IEEE, 2013: 81-84.
+            Shi L C, Lu B L. Off-line and on-line vigilance estimation based on linear dynamical system and manifold learning[C]//2010 Annual International Conference of the IEEE Engineering in Medicine and Biology. IEEE, 2010: 6587-6590.
+            Zheng W L, Zhu J Y, Lu B L. Identifying stable patterns over time for emotion recognition from EEG[J]. IEEE Transactions on Affective Computing, 2017, 10(3): 417-429.
         """
         n_eopoch, n_channel, n_feature = data.shape
         print(n_eopoch, n_channel, n_feature)
@@ -457,10 +602,12 @@ class Feature:
                     smoothed_data[:, i_channel, i_feature] = self.lsd_KalmanFilter(data[:, i_channel, i_feature],
                                                                                    window_size)
                 if smooth_type == "UnscentedKalmanFilter":
-                    smoothed_data[:, i_channel, i_feature] = self.lsd_UnscentedKalmanFilter(data[:, i_channel, i_feature],
-                                                                window_size)
+                    smoothed_data[:, i_channel, i_feature] = self.lsd_UnscentedKalmanFilter(
+                        data[:, i_channel, i_feature],
+                        window_size)
                 if smooth_type == "UnscentedKalmanFilter_sigmoid":
-                    smoothed_data[:, i_channel, i_feature] = self.lsd_UnscentedKalmanFilter( data[:, i_channel, i_feature],window_size,"sigmoid")
+                    smoothed_data[:, i_channel, i_feature] = self.lsd_UnscentedKalmanFilter(
+                        data[:, i_channel, i_feature], window_size, "sigmoid")
         return smoothed_data
 
 
