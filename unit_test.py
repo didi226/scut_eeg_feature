@@ -121,7 +121,8 @@ class MyTestCase(unittest.TestCase):
     def test_Shannon_entropy_(self):
         data, _ = get_data_example_motor_image()
         # (45, 64, 801)
-        fea = Feature(data, sfreq=160, selected_funcs=['Renyi_Entropy','Tsallis_Entropy','Shannon_entropy'])
+        fea = Feature(data, sfreq=160, selected_funcs=['Renyi_Entropy','Tsallis_Entropy','Shannon_entropy'],
+                      funcs_params={"Renyi_Entropy__sfreq":160, "Tsallis_Entropy__sfreq":160,"Shannon_entropy__sfreq":160})
         print(fea.features)
 
     # def test_mne_feature_name(self):
@@ -305,7 +306,7 @@ class MyTestCase(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_feature_smooth')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_Shannon_entropy_')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

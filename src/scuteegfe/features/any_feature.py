@@ -54,7 +54,7 @@ def compute_DFA(data, sfreq=250, win_times=1):
             feature[i_channel,i_section] = ant.detrended_fluctuation(data[i_channel, i_section * win_len:(i_section+ 1) * win_len])
     feature = feature.T.reshape(-1)
     return feature
-def compute_Shannon_entropy(data, sfreq=250,round_para=1, win_times=1):
+def compute_Shannon_entropy(data, sfreq=250,round_para=None, win_times=1):
     """
     Compute the Shannon entropy of the data.
 
@@ -70,7 +70,8 @@ def compute_Shannon_entropy(data, sfreq=250,round_para=1, win_times=1):
     References:
         Shannon C E. A mathematical theory of communication[J]. Bell System Technical Journal, 1948, 27(3): 379-423.
     """
-    data = np.round(data, round_para)
+    if round_para is not None:
+        data = np.round(data, round_para)
     win_len = sfreq * win_times
 
     n_channel, n_times = data.shape
@@ -382,14 +383,14 @@ def compute_Coherence(data,Co_channel=None,
 #     feature = feature.T.reshape(-1)
 #     return feature
 
-def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
+def compute_Renyi_Entropy(data, sfreq=250,round_para=None, win_times=1,alpha=2):
     """
      Compute the Renyi entropy for each channel using a sliding window approach.
 
      Args:
          data (ndarray): Input data with shape (n_channels, n_times).
          sfreq (int, optional): Sampling frequency. Defaults to 250.
-         round_para (int, optional): Number of decimal places to round the data. Defaults to 1.
+         round_para (int, optional): Number of decimal places to round the data. Defaults to None.
          win_times (int, optional): Window duration in seconds. Defaults to 1.
          alpha (float, optional): Renyi entropy parameter. Defaults to 2.
 
@@ -399,7 +400,8 @@ def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
      Notes:
          - The entropy is calculated for each window of data and then averaged across all windows.
      """
-    data = np.round(data, round_para)
+    if round_para is not None:
+        data = np.round(data, round_para)
     win_len = sfreq * win_times
 
     n_channel, n_times = data.shape
@@ -410,7 +412,7 @@ def compute_Renyi_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
             feature[i_channel,i_section]=Renyi_Entropy(data[i_channel, i_section * win_len:(i_section+ 1) * win_len],alpha=alpha)
     feature = feature.T.reshape(-1)
     return feature
-def compute_Tsallis_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
+def compute_Tsallis_Entropy(data, sfreq=250,round_para=None, win_times=1,alpha=2):
     """
     Compute the Tsallis entropy for each channel using a sliding window approach.
 
@@ -427,7 +429,8 @@ def compute_Tsallis_Entropy(data, sfreq=250,round_para=1, win_times=1,alpha=2):
     Notes:
       - The entropy is calculated for each window of data and then averaged across all windows.
     """
-    data = np.round(data, round_para)
+    if round_para is not None:
+        data = np.round(data, round_para)
     win_len = sfreq * win_times
 
     n_channel, n_times = data.shape
@@ -856,33 +859,33 @@ def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],
     return feature
 
 
-def  compute_stft_2019(data,sfreq=250,win_times=10,n_fre_idx=36):
-    """
-    Compute the short-time Fourier transform (STFT) and sum the energy at fixed frequency points.
-
-    Args:
-        data (ndarray): The input data array with shape (n_channels, n_times).
-        sfreq (int): Sampling frequency of the time signal. Default is 250 Hz.
-        win_times (int): Window length in seconds. Default is 10.
-        n_fre_idx (int): Number of frequency points to sum. Default is 36.
-
-    Returns:
-        ndarray: STFT-based features with shape (n_channels, section_num, n_fre_idx).
-    """
-    from scipy.signal import stft
-    win_len = sfreq * win_times
-    n_channel, n_times = data.shape
-    section_num = n_times // win_len
-    feature = np.zeros((n_channel, section_num,n_fre_idx))
-    for i_section in range(section_num):
-        for i_channel in range(n_channel):
-            X= data[i_channel, i_section * win_len:(i_section + 1) * win_len]
-            f, t, Zxx = stft(X, fs=sfreq, window='blackman', nperseg=256, noverlap=None, nfft=512,
-                             detrend=False, boundary='zeros', padded=True)
-            Y=10*np.log(abs(np.mean(Zxx[2:n_fre_idx*2+1:2,:],axis=1)))
-            feature[i_channel, i_section] =Y
-    feature = feature.T.reshape(-1)
-    return feature
+# def  compute_stft_2019(data,sfreq=250,win_times=10,n_fre_idx=36):
+#     """
+#     Compute the short-time Fourier transform (STFT) and sum the energy at fixed frequency points.
+#
+#     Args:
+#         data (ndarray): The input data array with shape (n_channels, n_times).
+#         sfreq (int): Sampling frequency of the time signal. Default is 250 Hz.
+#         win_times (int): Window length in seconds. Default is 10.
+#         n_fre_idx (int): Number of frequency points to sum. Default is 36.
+#
+#     Returns:
+#         ndarray: STFT-based features with shape (n_channels, section_num, n_fre_idx).
+#     """
+#     from scipy.signal import stft
+#     win_len = sfreq * win_times
+#     n_channel, n_times = data.shape
+#     section_num = n_times // win_len
+#     feature = np.zeros((n_channel, section_num,n_fre_idx))
+#     for i_section in range(section_num):
+#         for i_channel in range(n_channel):
+#             X= data[i_channel, i_section * win_len:(i_section + 1) * win_len]
+#             f, t, Zxx = stft(X, fs=sfreq, window='blackman', nperseg=256, noverlap=None, nfft=512,
+#                              detrend=False, boundary='zeros', padded=True)
+#             Y=10*np.log(abs(np.mean(Zxx[2:n_fre_idx*2+1:2,:],axis=1)))
+#             feature[i_channel, i_section] =Y
+#     feature = feature.T.reshape(-1)
+#     return feature
 
 
 def flatten_lower_triangle(matrix):
