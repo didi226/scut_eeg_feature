@@ -1074,9 +1074,9 @@ def compute_correlation_dimension(data,emb_dim=10):
     """
     import nolds
     n_channel, n_times = data.shape
-    feature=np.zeros((n_channel))
+    feature = np.zeros((n_channel))
     for i_channel in  range(n_channel):
-        feature[i_channel]=nolds.corr_dim(data[i_channel,:],emb_dim)
+        feature[i_channel] = nolds.corr_dim(data[i_channel,:],emb_dim)
     return feature
 def compute_dispersion_entropy(data,classes=10,scale=1,emb_dim=2,delay=1,
                                    mapping_type='cdf',de_normalize=False, A=100,Mu=100,return_all=False,warns=True):
@@ -1125,9 +1125,9 @@ def compute_dispersion_entropy(data,classes=10,scale=1,emb_dim=2,delay=1,
     """
     import spkit
     n_channel, n_times = data.shape
-    feature=np.zeros((n_channel))
+    feature = np.zeros((n_channel))
     for i_channel in  range(n_channel):
-          feature[i_channel],_=spkit.dispersion_entropy(data[i_channel,:],classes,scale,emb_dim,delay,
+          feature[i_channel],_ = spkit.dispersion_entropy(data[i_channel,:],classes,scale,emb_dim,delay,
                                    mapping_type,de_normalize, A,Mu,return_all,warns)
     return feature
 def compute_aperiodic_periodic_offset_exponent_cf(data, sfreq=250, n=1024,freq_range=None, method="welch"):
