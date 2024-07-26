@@ -35,7 +35,7 @@ setuptools.setup(
         'EntropyHub',
 'pykalman',
 'mne_connectivity',
-'spkit'>= "0.0.9.6.8",
+'spkit>= 0.0.9.6.8',
 'fooof',
 'nilearn'
 ],
