@@ -994,7 +994,7 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
     return feature
 
 def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]),
-                             n_surrogates=0,mode="self", approach_pac="mean"):
+                             n_surrogates=0, mode="self", approach_pac="mean"):
     """
     Compute Phase-Amplitude Coupling (PAC) connectivity from EEG data.
 

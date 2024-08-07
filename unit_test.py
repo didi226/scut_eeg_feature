@@ -296,8 +296,24 @@ class MyTestCase(unittest.TestCase):
             funcs_params={"pow_freq_bands_remove_aperiodic__freq_bands": np.array([[1, 4], [4, 8], [8, 12], [12, 30], [30, 40]]),
                           "pow_freq_bands_remove_aperiodic__freq_range":[1, 40],
                        "pow_freq_bands_remove_aperiodic__psd_method":'welch'}
-                       ).features
-        print(fea1.shape)
+                       )
+        print(fea1.features.shape)
+    def test_pac_connectivity(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data = np.random.rand(2, 5, 1000)
+        fea1 = Feature(data = data, sfreq=250, selected_funcs=['pac_connectivity'],
+                       funcs_params={
+                                     "pac_connectivity__sfreq": 250,
+                                     "pac_connectivity__method": 'tort',
+                                     "pac_connectivity__band": np.array([[4, 8], [30, 45]]),
+                                     "pac_connectivity__mode": 'non-self'
+                                     } )
+        #fix_missing()
+        #reorder()
+        fea2 = fea1.reorder()
+        print(fea1.features.shape)
+
+
 
 
 
@@ -306,7 +322,7 @@ class MyTestCase(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_Shannon_entropy_')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_pac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

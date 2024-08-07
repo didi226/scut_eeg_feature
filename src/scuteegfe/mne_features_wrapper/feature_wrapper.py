@@ -68,6 +68,7 @@ class Feature:
         self.funcs = funcs
         self.feature_names_order = feature_names_order
         self.example_data = data[0, 0][None, None]
+        self.conn_example_data = data[0][None]
         self.n_channel = data.shape[1]
         self.funcs_params = funcs_params
         features = extract_features(data, sfreq, funcs, funcs_params, n_jobs, ch_names, return_as_df)
@@ -227,7 +228,10 @@ class Feature:
                     param_dict.update(param)
             except Exception as e:
                 param_dict = None
-            fea_ = Feature(self.example_data, selected_funcs={each_fea}, funcs_params=param_dict)
+            if each_fea in ["pac_connectivity","correlation_matrix"]:
+                fea_ = Feature(self.conn_example_data, selected_funcs={each_fea}, funcs_params=param_dict)
+            else:
+                fea_ = Feature(self.example_data, selected_funcs={each_fea}, funcs_params=param_dict)
             fea_shape = fea_.__features.shape[2]
             feature_names.append(each_fea)
             feature_shapes.append(fea_shape)
