@@ -31,5 +31,5 @@ jobs:
       env:
     
         TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{secrets.DIDI_KEY}}
+        TWINE_PASSWORD: ${{secrets.ALL_PACKAGE_KEY}}
       run: twine upload dist/*
