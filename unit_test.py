@@ -304,7 +304,7 @@ class MyTestCase(unittest.TestCase):
         fea1 = Feature(data = data, sfreq=250, selected_funcs=['pac_connectivity'],
                        funcs_params={
                                      "pac_connectivity__sfreq": 250,
-                                     "pac_connectivity__method": 'tort',
+                                     "pac_connectivity__method": 'jiang',
                                      "pac_connectivity__band": np.array([[4, 8], [30, 45]]),
                                      "pac_connectivity__mode": 'non-self'
                                      } )

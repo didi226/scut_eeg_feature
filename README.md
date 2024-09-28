@@ -1,18 +1,16 @@
-# 简介
-`scuteegfe`是[mne-feature](https://mne.tools/mne-features/api.html)的一个封装，并在其基础之上新增了更多的特征。
-# 构建
-```bash
-python -m build
-```
+## Description
 
-# 安装
-```bash
-pip install --editable .
-```
-注：`--editable`表示以开发模式安装，对源码的改动不用重新构建和安装也能生效。
+`scuteegfe`[mne-feature](https://mne.tools/mne-features/api.html)  is an encapsulation that adds more features on top of it, especially the feature of functional connectivity.
 
-# 使用
-用法参考[mne-feature](https://mne.tools/mne-features/api.html)，与其保持一致。
+You can get more information and usage about the package from the  [Document ](https://scut-eeg-feature.readthedocs.io/en/latest/).
+
+## Installation
+
+```bash
+pip install scuteegfe
+```
+# Usage
+Usage reference[mne-feature](https://mne.tools/mne-features/api.html)，The usage method should be consistent with it.
 ```python
 from scuteegfe import Feature
 import numpy as np

@@ -1063,7 +1063,75 @@ def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8
     feature = feature.reshape(-1)
     return feature
 
+def compute_pac_connectivity_mod(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]),
+                             n_surrogates=0, mode="self", approach_pac="mean"):
+    """
+    Compute Phase-Amplitude Coupling (PAC) connectivity from EEG data.
 
+    Args:
+       data (ndarray): Input data with shape (n_channels, n_times).
+       sfreq (int): Sampling frequency of the time signal. Default is 250 Hz.
+       method (str): Method for computing PAC. Options are:
+           - "tort": Tortoise method
+           - "jiang": Jiang method
+       band (ndarray): Frequency bands for PAC computation with shape (2, 2). Each row specifies the low and high frequencies for the band.
+       n_surrogates (int): Number of surrogates for significance testing. Default is 0 (no surrogates).
+       mode (str): Mode for PAC computation. Options are:
+           - "self": Compute PAC for each channel with itself.
+           - "non-self": Compute PAC between each pair of channels.
+       approach_pac (str): Approach for summarizing PAC values. Options are:
+           - "mean": Use the mean PAC value.
+           - "max": Use the maximum PAC value.
+
+    Returns:
+       ndarray: Flattened array of PAC connectivity features. The shape depends on the `mode`:
+           - If `mode` is "self": (n_channels,)
+           - If `mode` is "non-self": (n_channels * n_channels,)
+
+    Notes:
+       - The `band` parameter specifies the frequency range for the low and high frequency bands used in PAC computation.
+       - The `method` parameter determines the algorithm used for PAC calculation.
+       - In "self" mode, PAC is computed for each channel individually.
+       - In "non-self" mode, PAC is computed for every pair of channels.
+       - The `approach_pac` parameter determines how the PAC values are aggregated: either by taking the mean or the maximum value.
+
+    Example:
+       To compute PAC using the "tort" method for each channel with itself, averaging the PAC values:
+       ```python
+       pac_features = compute_pac_connectivity(data, method='tort', mode='self', approach_pac='mean')
+       ```
+    """
+
+    n_channel, n_times = data.shape
+    low_fq_width = band[0, 1] - band[0, 0]
+    high_fq_width = band[1, 1] - band[1, 0]
+    low_fq_range =np.linspace(band[0,0],band[0,1],low_fq_width+1)
+    high_fq_range = np.linspace(band[1, 0], band[1, 1], high_fq_width+1)
+    c = Comodulogram(fs=sfreq, low_fq_range=low_fq_range, high_fq_range=high_fq_range,method=method,
+                     n_surrogates=n_surrogates,n_jobs=-1)
+    if mode== "self":
+        feature=np.zeros((n_channel))
+        for N_channel in range(n_channel):
+            sig = data[N_channel, :]
+            pac_matrix=c.fit(sig).comod_
+            if approach_pac=="mean":
+                  feature[N_channel] = np.mean(pac_matrix)
+            elif approach_pac=="max":
+                feature[N_channel] = np.max(pac_matrix)
+
+    elif mode== "non-self":
+        feature = np.zeros((n_channel,n_channel))
+        for i_channel in range(n_channel):
+            for j_channel in range(n_channel):
+                sig_low = data[i_channel, :]
+                sig_high = data[j_channel, :]
+                pac_matrix = c.fit(sig_low,sig_high).comod_
+                if approach_pac == "mean":
+                    feature[i_channel,j_channel] =  np.mean(pac_matrix)
+                elif approach_pac == "max":
+                    feature[i_channel, j_channel] = np.max(pac_matrix)
+    feature = feature.reshape(-1)
+    return feature
 
 def compute_correlation_dimension(data,emb_dim=10):
     """
