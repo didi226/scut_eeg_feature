@@ -936,18 +936,29 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
         data (ndarray): Input data with shape (n_channels, n_times).
         sfreq (int): Sampling frequency of the time signal. Default is 250 Hz.
         kind (str): Type of connectivity measure to compute. The available options are:
-            - For measures using Nilearn:
-              ["covariance", "correlation", "partial correlation", "tangent", "precision"]
-            - For measures using MNE-connectivity:
-              ["ciplv", "ppc", "pli", "dpli", "wpli", "wpli2_debiased", "cohy", "imcoh", "coh", "plv", "gc", "gc_tr", "mic", "mim"]
-            Where:
-              - "pli" stands for Phase Lag Index.
-              - "wpli" stands for weighted Phase Lag Index.
-              - "plv" stands for Phase Locking Value.
-              - "gc" stands for Granger Causality.
-              - "gc_tr" stands for Granger Causality with trends.
-              - "mic" stands for Maximal Information Coefficient.
-              - "mim" stands for Maximal Information Coefficient Mutual.
+            - **Nilearn Measures**:
+              - `"covariance"`: Measures the covariance between signals.
+              - `"correlation"`: Measures the Pearson correlation coefficient between signals.
+              - `"partial correlation"`: Measures the partial correlation, accounting for the influence of other signals.
+              - `"tangent"`: Computes the tangent connectivity measure.  For the use of “tangent” see Varoquaux et al [1].
+              - `"precision"`: Measures the precision of the connectivity.
+           - **MNE-connectivity Measures**:
+              - `"coh"`: Coherence.
+              - `"cohy"`: Coherency.
+              - `"imcoh"`: Imaginary part of Coherency.
+              - `"cacoh"`: Canonical Coherency (CaCoh).
+              - `"mic"`: Maximised Imaginary part of Coherency (MIC).
+              - `"mim"`: Multivariate Interaction Measure (MIM).
+              - `"plv"`: Phase-Locking Value (PLV).
+              - `"ciplv"`: Corrected Imaginary PLV (ciPLV).
+              - `"ppc"`: Pairwise Phase Consistency (PPC).
+              - `"pli"`: Phase Lag Index (PLI).
+              - `"pli2_unbiased"`: Unbiased estimator of squared PLI.
+              - `"dpli"`: Directed PLI (DPLI).
+              - `"wpli"`: Weighted PLI (WPLI).
+              - `"wpli2_debiased"`: Debiased estimator of squared WPLI.
+              - `"gc"`: State-space Granger Causality (GC).
+              - `"gc_tr"`: State-space GC on time-reversed signals.
         filter_bank (ndarray or list, optional): Band-pass filter parameters with shape (2,) [low_freq, high_freq]. Default is None (no filtering).
         n_win (int): Number of windows to split the data into. If the connectivity measure requires multiple epochs, this parameter helps in splitting one epoch into multiple parts. Default is 1.
 
@@ -958,6 +969,8 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
         - For certain measures like "tangent", multiple epochs are required. Ensure `n_win` is set appropriately for such measures.
         - If the `filter_bank` is specified, the data is band-pass filtered before computing the connectivity.
         - In case of an error during connectivity computation, the function returns an identity matrix and prints a warning message. Ensure the parameters are set correctly to avoid computation errors.
+    References:
+        [1]Gael Varoquaux, Flore Baronnet, Andreas Kleinschmidt, Pierre Fillard, and Bertrand Thirion. Detection of brain functional-connectivity difference in post-stroke patients using group-level covariance modeling. In Tianzi Jiang, Nassir Navab, Josien P. W. Pluim, and Max A. Viergever, editors, Medical image computing and computer-assisted intervention - MICCAI 2010, Lecture notes in computer science, 200–208. Berlin, Heidelberg, 2010. Springer. https://link.springer.com/chapter/10.1007/978-3-642-15705-9_25.
     """
 
     n_channel,n_times=data.shape
