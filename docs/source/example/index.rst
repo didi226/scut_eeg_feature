@@ -8,5 +8,6 @@ Example
    feature_visualization.ipynb
    function.ipynb
    connectivity.ipynb
+   Phase_amplitude_coupling.ipynb
    .. sssm_example.ipynb
 
