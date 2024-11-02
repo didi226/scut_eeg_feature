@@ -23,6 +23,7 @@ from fooof.analysis import get_band_peak_fg
 import matplotlib.pyplot as plt
 from mne_features.univariate import compute_pow_freq_bands
 from scipy.signal import welch
+from mne_connectivity import spectral_connectivity_epochs, envelope_correlation
 # import tftb
 
 
@@ -61,7 +62,7 @@ def compute_Shannon_entropy(data, sfreq=250,round_para=None, win_times=1):
     Args:
         data (ndarray): Input data with shape (n_channels, n_times).
         sfreq (int, optional): Sampling frequency. Defaults to 250.
-        round_para (int, optional): Rounding precision for data. Defaults to 1.
+        round_para (int, optional): Rounding precision for data. Defaults to None, default retention of all digits for calculation.
         win_times (int, optional): Window duration in seconds. Defaults to 1.
 
     Returns:
@@ -390,7 +391,7 @@ def compute_Renyi_Entropy(data, sfreq=250,round_para=None, win_times=1,alpha=2):
      Args:
          data (ndarray): Input data with shape (n_channels, n_times).
          sfreq (int, optional): Sampling frequency. Defaults to 250.
-         round_para (int, optional): Number of decimal places to round the data. Defaults to None.
+         round_para (int, optional): Number of decimal places to round the data.  Defaults to None, default retention of all digits for calculation.
          win_times (int, optional): Window duration in seconds. Defaults to 1.
          alpha (float, optional): Renyi entropy parameter. Defaults to 2.
 
@@ -419,7 +420,7 @@ def compute_Tsallis_Entropy(data, sfreq=250,round_para=None, win_times=1,alpha=2
     Args:
       data (ndarray): Input data with shape (n_channels, n_times).
       sfreq (int, optional): Sampling frequency. Defaults to 250.
-      round_para (int, optional): Number of decimal places to round the data. Defaults to 1.
+      round_para (int, optional): Number of decimal places to round the data.  Defaults to None, default retention of all digits for calculation.
       win_times (int, optional): Window duration in seconds. Defaults to 1.
       alpha (float, optional): Tsallis entropy parameter. Defaults to 2.
 
@@ -928,7 +929,7 @@ def reshape_to_lower_triangle(flattened_array,n_channel):
 
 
 
-def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=None,n_win=1):
+def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=None,n_win=1,log = False):
     """
     Compute various types of connectivity measures from EEG data.
 
@@ -959,9 +960,10 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
               - `"wpli2_debiased"`: Debiased estimator of squared WPLI.
               - `"gc"`: State-space Granger Causality (GC).
               - `"gc_tr"`: State-space GC on time-reversed signals.
+              - `"pec"`: power envolope correlation
         filter_bank (ndarray or list, optional): Band-pass filter parameters with shape (2,) [low_freq, high_freq]. Default is None (no filtering).
         n_win (int): Number of windows to split the data into. If the connectivity measure requires multiple epochs, this parameter helps in splitting one epoch into multiple parts. Default is 1.
-
+        log (default False): If True , square and take the log before orthonalizing envelopes or computing correlations.
     Returns:
         ndarray: Flattened array of the computed connectivity matrix with shape (n_channel * n_channel,).
 
@@ -984,24 +986,29 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
         matrix_0 = connectivity_measure.fit_transform(time_series)[0]
         feature = matrix_0
     elif kind in ['ciplv', 'ppc', 'pli', 'dpli', 'wpli', 'wpli2_debiased', 'cohy', 'imcoh','coh','plv','gc','gc_tr','mic','mim']:
+
         new_data=data.reshape([n_win,n_channel,n_times//n_win])
             ###这部分计算就可以进行结果也有问题
-        from mne_connectivity import spectral_connectivity_epochs
         try:
             if filter_bank is None:
                 feature_1 = spectral_connectivity_epochs(data=new_data, method=kind, mode='multitaper', sfreq=sfreq,
-                                                         faverage=True, mt_adaptive=False)
+                                                         faverage=True, mt_adaptive=False,verbose=False)
             else:
                 feature_1=spectral_connectivity_epochs(data=new_data,method=kind,mode='multitaper', sfreq=sfreq, fmin=filter_bank[0],
-                                                       fmax=filter_bank[1],faverage=True, mt_adaptive=False)
-            feature_1 = np.squeeze(feature_1.get_data("dense"))
-            np.fill_diagonal(feature_1,1)
-            feature = feature_1 + feature_1.T - np.diag(feature_1.diagonal())
+                                                       fmax=filter_bank[1],faverage=True, mt_adaptive=False,verbose=False)
+            feature_2 = np.squeeze(feature_1.get_data("dense"))
+            np.fill_diagonal(feature_2,1)
+            feature = feature_2 + feature_2.T - np.diag(feature_2.diagonal())
         except:
                feature=np.eye(n_channel)
                print("feature connectivity jump")
+    elif kind in ['pec']:
+        new_data = data.reshape([n_win, n_channel, n_times // n_win])
+        feature_1 = envelope_correlation(data=new_data,log=log,verbose =False)
+        feature = np.squeeze(feature_1.get_data("dense"))
+
     elif kind in ['dtf','dpc']:
-            feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
+        feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
 
     feature = feature.T.reshape(-1)
     return feature

@@ -181,7 +181,7 @@ class MyTestCase(unittest.TestCase):
         #比较-利用Feature类计算
         fea1 = Feature(data1, sfreq=100,
                        selected_funcs=['correlation_matrix'],
-                       funcs_params={"correlation_matrix__kind":"coh"})
+                       funcs_params={"correlation_matrix__sfreq": 100,"correlation_matrix__kind":"coh"})
 
         print(fea1.features[0])
         ##计算相关性后可视化
@@ -216,7 +216,8 @@ class MyTestCase(unittest.TestCase):
         data1 = np.random.rand(10, 20, 500)
         fea1 = Feature(data1, sfreq=100,
                        selected_funcs=['correlation_matrix'],
-                       funcs_params={"correlation_matrix__kind": "dtf","correlation_matrix__filter_bank": np.array([8,12])})
+                       funcs_params={"correlation_matrix__sfreq": 100, "correlation_matrix__kind":
+                           "dtf","correlation_matrix__filter_bank": np.array([8,12])})
         print(fea1.features[0])
         ##计算相关性后可视化
         plotting.plot_matrix(fea1.features[0], vmin=0, vmax=0.1, cmap=cm.jet, colorbar=False)
@@ -312,7 +313,25 @@ class MyTestCase(unittest.TestCase):
         #reorder()
         fea2 = fea1.reorder()
         print(fea1.features.shape)
+    def test_pec_connectivity(self):
+        from mne_connectivity import envelope_correlation
+        data = np.random.rand(1, 5, 1000)
+        feature_1 = envelope_correlation(data,verbose=False)
+        feature = np.squeeze(feature_1.get_data("dense"))
+        print(feature.shape)
 
+    def test_pec_connectivity_use(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        from nilearn import plotting
+        import matplotlib.cm as cm
+        data1 = np.random.rand(3, 5, 1000)
+        fea1 = Feature(data1, sfreq=100,
+                       selected_funcs=['correlation_matrix'],
+                       funcs_params={'correlation_matrix__sfreq':100,"correlation_matrix__kind": "pec"})
+        print(fea1.features[0])
+        ##计算相关性后可视化
+        plotting.plot_matrix(fea1.features[0], vmin=0, vmax=0.1, cmap=cm.jet, colorbar=False)
+        plt.show()
 
 
 
@@ -322,7 +341,7 @@ class MyTestCase(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_pac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_pec_connectivity_use')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 
