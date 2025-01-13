@@ -324,10 +324,10 @@ class MyTestCase(unittest.TestCase):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
         from nilearn import plotting
         import matplotlib.cm as cm
-        data1 = np.random.rand(3, 5, 1000)
+        data1 = np.random.rand(3, 5, 2001)
         fea1 = Feature(data1, sfreq=100,
                        selected_funcs=['correlation_matrix'],
-                       funcs_params={'correlation_matrix__sfreq':100,"correlation_matrix__kind": "pec"})
+                       funcs_params={'correlation_matrix__sfreq':100,"correlation_matrix__kind": 'coh',"correlation_matrix__n_win": 2})
         print(fea1.features[0])
         ##计算相关性后可视化
         plotting.plot_matrix(fea1.features[0], vmin=0, vmax=0.1, cmap=cm.jet, colorbar=False)

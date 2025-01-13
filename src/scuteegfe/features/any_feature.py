@@ -976,6 +976,8 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
     """
 
     n_channel,n_times=data.shape
+    adjusted_n_times = (n_times // n_win) * n_win
+    data = data[:,:adjusted_n_times]
     #tangent 这个是多个epoch放在一起才能计算的
     if kind in ["covariance","correlation", "partial correlation", "tangent","precision"]:
         if filter_bank is not None:
