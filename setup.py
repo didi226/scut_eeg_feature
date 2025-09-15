@@ -6,7 +6,7 @@ from setuptools import find_packages
 
 setuptools.setup(
     name="scuteegfe",
-    version="0.0.3",
+    version="0.0.4",
     author="bkxcyu",
     author_email="bkxcyu@gmail.com",
     description="EEG Signal Feature Exacting, a wrapper of mne_features",
@@ -16,7 +16,7 @@ setuptools.setup(
     package_dir={"": "src"},
     install_requires=[
         'requests',
-        'importlib-metadata; python_version >= "3.8"',
+        'importlib-metadata; python_version >= "3.10"',
         'einops',
         'mne_features',
         'EMD-signal',
