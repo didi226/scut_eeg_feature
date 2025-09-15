@@ -37,6 +37,7 @@ setuptools.setup(
 'mne_connectivity',
 'spkit>= 0.0.9.6.8',
 'fooof',
-'nilearn'
+'nilearn',
+'pybispectra'
 ],
 )

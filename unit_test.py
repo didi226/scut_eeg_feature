@@ -8,8 +8,50 @@ from mne import Epochs, pick_types, events_from_annotations
 from mne.channels import make_standard_montage
 from mne.io import concatenate_raws, read_raw_edf
 from mne_features.feature_extraction import extract_features
+from scipy.signal import hilbert, coherence
+
+def calculate_correlation_matrix(sample_data,sfreq, method):
+    num_channels = sample_data.shape[0]
+    correlation_matrix = np.zeros((num_channels, num_channels))
+    for i in range(num_channels):
+        for j in range(num_channels):
+            if i != j:
+                channel_data1 = sample_data[i, :]
+                channel_data2 = sample_data[j, :]
+                if method == "correlation":
+                    correlation_matrix[i, j] = calculate_channel_correlation_pearson(channel_data1, channel_data2)
+                elif method == "plv":
+                    correlation_matrix[i, j] = calculate_channel_correlation_plv(channel_data1, channel_data2)
+                elif method == "coh":
+                    correlation_matrix[i, j] = calculate_channel_correlation_coh(channel_data1, channel_data2,sfreq)
+            else:
+                correlation_matrix[i, j] = 1  # 自相关为1
+    return correlation_matrix
 
 
+def calculate_channel_correlation_pearson(channel_data1, channel_data2):
+    pearson = (np.corrcoef(channel_data1, channel_data2))[0, 1]
+    return np.abs(pearson)
+
+
+def calculate_channel_correlation_plv(channel_data1, channel_data2):
+    # 使用希尔伯特变换提取相位
+    analytic_signal1 = hilbert(channel_data1)
+    analytic_signal2 = hilbert(channel_data2)
+    phase1 = np.angle(analytic_signal1)
+    phase2 = np.angle(analytic_signal2)
+    # 计算 PLV
+    phase_diff = phase1 - phase2
+    plv = np.abs(np.mean(np.exp(1j * phase_diff)))
+    return plv
+
+
+def calculate_channel_correlation_coh(channel_data1, channel_data2,sfreq):
+    # 计算每对信号之间的相干性
+    _, coh = coherence(channel_data1, channel_data2, fs=sfreq, nperseg=channel_data1.shape[0] // 2)
+    # 取相干性矩阵的平均值作为代表值
+    mean_coh = np.mean(coh)
+    return mean_coh
 def get_data_example_motor_image():
     tmin, tmax = -1., 4.
     event_id = dict(hands=2, feet=3)
@@ -313,6 +355,17 @@ class MyTestCase(unittest.TestCase):
         #reorder()
         fea2 = fea1.reorder()
         print(fea1.features.shape)
+    def test_aac_connectivity(self):
+        from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
+        data = np.random.rand(3, 5, 1000)
+        fea1 = Feature(data = data, sfreq=250, selected_funcs=['aac_connectivity'],
+                       funcs_params={
+                                     "aac_connectivity__sfreq": 250,
+                                     "aac_connectivity__band": np.array([[4, 8], [30, 45]]),
+                                     "aac_connectivity__mode": 'non-self'
+                                     } )
+        fea2 = fea1.reorder()
+        print(fea1.features.shape)
     def test_pec_connectivity(self):
         from mne_connectivity import envelope_correlation
         data = np.random.rand(1, 5, 1000)
@@ -333,15 +386,37 @@ class MyTestCase(unittest.TestCase):
         plotting.plot_matrix(fea1.features[0], vmin=0, vmax=0.1, cmap=cm.jet, colorbar=False)
         plt.show()
 
+    def test_plv_coh_corr_calculate(self):
+        npz_data = np.load(r"F:\data\mhw\ASD001_fixed_window_10_step_None_fnirs_data_mhw.npz")['data'][0,:,:]
+        feature_corr_0 = Feature(npz_data[np.newaxis,:,:], sfreq=10,
+                       selected_funcs=['correlation_matrix'],
+                       funcs_params={'correlation_matrix__sfreq':10,"correlation_matrix__kind":
+                           'mcorrelation'})
+        feature_corr__mat_0 = feature_corr_0.features[0,:,:]
+        feature_corr__mat_1 = calculate_correlation_matrix(npz_data, sfreq=10,method='correlation')
+        dd = 1
+
+
 
 
 
 
 
 if __name__ == '__main__':
+    import sys
+    import os
+
+    for p in sys.path:
+        print(p)
+
+    import pybispectra
+
+    print(pybispectra.__file__)
+
+
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_pec_connectivity_use')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_aac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt
 from mne_features.univariate import compute_pow_freq_bands
 from scipy.signal import welch
 from mne_connectivity import spectral_connectivity_epochs, envelope_correlation
+from scipy.signal import hilbert, coherence
+from pybispectra import AAC, compute_tfr
 # import tftb
 
 
@@ -929,7 +931,9 @@ def reshape_to_lower_triangle(flattened_array,n_channel):
 
 
 
-def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=None,n_win=1,log = False):
+def compute_correlation_matrix(data,sfreq=250,
+                               kind="correlation",filter_bank=None,
+                               n_win=1,log = False,standardize=True):
     """
     Compute various types of connectivity measures from EEG data.
 
@@ -961,6 +965,10 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
               - `"gc"`: State-space Granger Causality (GC).
               - `"gc_tr"`: State-space GC on time-reversed signals.
               - `"pec"`: power envolope correlation
+           - **My-connectivity Measures**:
+              - `"mcorrelation"`: Measures the Pearson correlation coefficient between signals.
+              - `"mcoh"`: Coherence.
+              - `"mplv"`: Phase-Locking Value (PLV).
         filter_bank (ndarray or list, optional): Band-pass filter parameters with shape (2,) [low_freq, high_freq]. Default is None (no filtering).
         n_win (int): Number of windows to split the data into. If the connectivity measure requires multiple epochs, this parameter helps in splitting one epoch into multiple parts. Default is 1.
         log (default False): If True , square and take the log before orthonalizing envelopes or computing correlations.
@@ -968,7 +976,7 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
         ndarray: Flattened array of the computed connectivity matrix with shape (n_channel * n_channel,).
 
     Notes:
-        - For certain measures like "tangent", multiple epochs are required. Ensure `n_win` is set appropriately for such measures.
+        - For certain measures like "tangent","plv", multiple epochs are required. Ensure `n_win` is set appropriately for such measures.
         - If the `filter_bank` is specified, the data is band-pass filtered before computing the connectivity.
         - In case of an error during connectivity computation, the function returns an identity matrix and prints a warning message. Ensure the parameters are set correctly to avoid computation errors.
     References:
@@ -979,18 +987,20 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
     adjusted_n_times = (n_times // n_win) * n_win
     data = data[:,:adjusted_n_times]
     #tangent 这个是多个epoch放在一起才能计算的
-    if kind in ["covariance","correlation", "partial correlation", "tangent","precision"]:
+    if kind in ["mcorrelation","mcoh","mplv"]:
+        if filter_bank is not None:
+            data = mne.filter.filter_data(data, sfreq=sfreq, l_freq=filter_bank[0], h_freq=filter_bank[1])
+        feature = calculate_temp_correlation(data, sfreq, kind)
+    elif kind in ["covariance","correlation", "partial correlation", "tangent","precision"]:
         if filter_bank is not None:
             data = mne.filter.filter_data(data, sfreq=sfreq, l_freq=filter_bank[0], h_freq=filter_bank[1])
         time_series = data.transpose(1, 0)
         time_series = time_series.reshape(n_win, n_times//n_win,n_channel)
-        connectivity_measure = ConnectivityMeasure(kind=kind)
+        connectivity_measure = ConnectivityMeasure(kind=kind,standardize=standardize)
         matrix_0 = connectivity_measure.fit_transform(time_series)[0]
         feature = matrix_0
     elif kind in ['ciplv', 'ppc', 'pli', 'dpli', 'wpli', 'wpli2_debiased', 'cohy', 'imcoh','coh','plv','gc','gc_tr','mic','mim']:
-
-        new_data=data.reshape([n_win,n_channel,n_times//n_win])
-            ###这部分计算就可以进行结果也有问题
+        new_data = data.reshape([n_win,n_channel,n_times//n_win])
         try:
             if filter_bank is None:
                 feature_1 = spectral_connectivity_epochs(data=new_data, method=kind, mode='multitaper', sfreq=sfreq,
@@ -1002,7 +1012,7 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
             np.fill_diagonal(feature_2,1)
             feature = feature_2 + feature_2.T - np.diag(feature_2.diagonal())
         except:
-               feature=np.eye(n_channel)
+               feature = np.eye(n_channel)
                print("feature connectivity jump")
     elif kind in ['pec']:
         new_data = data.reshape([n_win, n_channel, n_times // n_win])
@@ -1011,9 +1021,38 @@ def compute_correlation_matrix(data,sfreq=250,kind="correlation",filter_bank=Non
 
     elif kind in ['dtf','dpc']:
         feature=calculate_dtf_pdc(data,sfreq=sfreq,kind=kind,p=None,normalize_=True,filter_bank=filter_bank)
-
     feature = feature.T.reshape(-1)
     return feature
+
+
+def calculate_temp_correlation(data, sfreq=250, method="correlation"):
+    """
+    Calculte non-spectral connectivity "correlation","plv", "coh" measures from EEG data.
+    Args:
+        data: (ndarray): Input data with shape (n_channels, n_times).
+        sfreq (int): Sampling frequency of the time signal. Default is 250 Hz.
+        kind (str): Type of connectivity measure to compute. The available options are:"correlation","plv", "coh"
+
+    Returns:
+        correlation_matrix: (ndarray) (n_channels,n_channels)
+
+    """
+    num_channels = data.shape[0]
+    correlation_matrix = np.zeros((num_channels, num_channels))
+    for i in range(num_channels):
+        for j in range(num_channels):
+            if i != j:
+                channel_data1 = data[i, :]
+                channel_data2 = data[j, :]
+                if method == "mcorrelation":
+                    correlation_matrix[i, j] = calculate_channel_correlation_pearson(channel_data1, channel_data2)
+                elif method == "mplv":
+                    correlation_matrix[i, j] = calculate_channel_correlation_plv(channel_data1, channel_data2)
+                elif method == "mcoh":
+                    correlation_matrix[i, j] = calculate_channel_correlation_coh(channel_data1, channel_data2,sfreq)
+            else:
+                correlation_matrix[i, j] = 1  # 自相关为1
+    return correlation_matrix
 
 def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]),
                              n_surrogates=0, mode="self", approach_pac="mean"):
@@ -1084,7 +1123,61 @@ def compute_pac_connectivity(data,sfreq=250, method='tort', band=np.array([[4, 8
                     feature[i_channel, j_channel] = np.max(pac_matrix)
     feature = feature.reshape(-1)
     return feature
+def compute_aac_connectivity(data, sfreq=250, band=np.array([[4, 8],[30,45]]),tfr_mode="morlet", n_cycles=7,mode="self",approach_aac="mean",n_jobs=1):
+    """
+    Compute Amplitude-Amplitude Coupling (AAC) connectivity from EEG data.
 
+    Args:
+       data (ndarray): Input data with shape (n_channels, n_times).
+       sfreq (int): Sampling frequency of the time signal. Default is 250 Hz.
+       band (ndarray): Frequency bands for PAC computation with shape (2, 2). Each row specifies the low and high frequencies for the band.
+       tfr_mode(str): mode of time frequncy representation Options are:
+           - "morlet"      See mne.time_frequency.tfr_array_morlet()
+           - "multitaper"  See mne.time_frequency.tfr_array_multitaper()
+       mode (str): Mode for AAC computation. Options are:
+           - "self": Compute AAC for each channel with itself.
+           - "non-self": Compute AAC between each pair of channels.
+       n_cycles(int|float): Number of cycles in the wavelet when computing the TFR. If an array, the number of cycles is given for each frequency, otherwise a fixed value across all frequencies is used.
+       approach_aac (str): Approach for summarizing AAC values. Options are:
+           - "mean": Use the mean AAC value.
+           - "max": Use the maximum AAC value.
+
+    Returns:
+       ndarray: Flattened array of AAC connectivity features. The shape depends on the `mode`:
+           - If `mode` is "self": (n_channels,)
+           - If `mode` is "non-self": (n_channels * n_channels,)
+
+    Notes:
+       - The `band` parameter specifies the frequency range for the low and high frequency bands used in PAC computation.
+       - In "self" mode, AAC is computed for each channel individually.
+       - In "non-self" mode, PAC is computed for every pair of channels.
+       - The `approach_aac` parameter determines how the AAC values are aggregated: either by taking the mean or the maximum value.
+       -[i,j] i for (band[0,0]  band [0,1]) seed,  j for (band[1,0]  band [1,1]) target
+    """
+    n_channel, n_times = data.shape
+    freqs = np.arange(max(band[0,0]-1,0), band[1,1]+1, 0.5)
+    fft_coeffs, freqs = compute_tfr(data= np.expand_dims(data, axis=0), sampling_freq=sfreq, freqs=freqs,
+                                    tfr_mode=tfr_mode ,n_cycles=n_cycles, verbose=False)
+    aac = AAC(data=fft_coeffs, freqs=freqs, sampling_freq=sfreq, verbose=False)
+    if mode == "self":
+        ch_idx = tuple(range(n_channels))
+        indices_self = (ch_idx, ch_idx)
+        aac.compute(indices=indices_self,f1s=(band[0, 0], band[0, 1]),f2s=(band[1, 0], band[1, 1]),n_jobs=n_jobs)
+        aac_results = aac.results.get_results(copy=False)
+        if approach_aac == "mean":
+            feature= np.mean(aac_results,axis=1)
+        elif approach_pac == "max":
+            feature = np.max(pac_matrix,axis=1)
+    elif mode== "non-self":
+        aac.compute(f1s=(band[0, 0], band[0, 1]), f2s=(band[1, 0], band[1, 1]), n_jobs=n_jobs)
+        aac_results = aac.results.get_results(copy=False)
+        if approach_aac == "mean":
+            feature=  np.mean(aac_results,axis=(1,2))
+        elif approach_pac == "max":
+            feature= np.max(aac_results,axis=(1,2))
+        feature.reshape(n_channel,n_channel)
+    feature = feature.T.reshape(-1)
+    return feature
 def compute_pac_connectivity_mod(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]),
                              n_surrogates=0, mode="self", approach_pac="mean"):
     """
@@ -1264,7 +1357,7 @@ def compute_aperiodic_periodic_offset_exponent_cf(data, sfreq=250, n=1024,freq_r
     feature = feature.T.reshape(-1)
     return feature
 
-def compute_offset_exponent_cf(data,sfreq=250,n=1024):
+def compute_offset_exponent_cf(data,sfreq=250,n=1024,freq_range=None):
     """
     Compute the offset and exponent of the power spectrum from EEG data.
 
@@ -1283,46 +1376,47 @@ def compute_offset_exponent_cf(data,sfreq=250,n=1024):
     from mne_features.univariate import compute_spect_slope
     n_channel, n_times = data.shape
     feature = np.zeros((n_channel,2))
-    feature[:,2]=compute_Median_Frequency(data,sfreq=250,band=np.array([[8,12]]),N=n)
+    feature[:,2]=compute_Median_Frequency(data,sfreq=sfreq,band=np.array([[8,12]]),N=n)
     # print(feature[:,2])
-    slope_para=compute_spect_slope(sfreq, data, fmin=0.1, fmax=50,with_intercept=True, psd_method='welch', psd_params=None)
+    if freq_range is None:
+        freq_range=[0.1,50]
+    slope_para=compute_spect_slope(sfreq, data, fmin=freq_range[0], fmax=freq_range[1],with_intercept=True, psd_method='welch', psd_params=None)
     slope_para=slope_para.reshape(n_channel,4)
     # print(slope_para)
     # print(slope_para.shape)
     # intercept, slope,
     feature[:, :2]=slope_para[:, :2]
-    feature[:,1]=-feature[:,1]
     feature = feature.T.reshape(-1)
     return feature
 
-# def compute_relative_power(data, sfreq=100, freq_bands=np.array([0.5, 4]), total_band = np.array([0.5, 50]),
-#                            ratios=None, ratios_triu=False,psd_method='welch', log=False, psd_params=None):
-#     """
-#     Args:
-#         data:        ndarray,           shape (n_channels, n_times)
-#         sfreq:       sfreq              信号采样频率
-#         freq_bands:  narray             定义方式类似于compute_pow_freq_bands
-#         total_band:  narray             np.array([0.5, 50]
-#         normalize:
-#         ratios:
-#         ratios_triu:
-#         psd_method:
-#         log:
-#         psd_params:
-#
-#     Returns:
-#
-#     """
-#     band_power = compute_pow_freq_bands(sfreq, data, freq_bands=freq_bands,
-#                            normalize=False, ratios=ratios, ratios_triu=ratios_triu,
-#                            psd_method=psd_method, log=log, psd_params=psd_params)
-#     total_power= compute_pow_freq_bands(sfreq, data, freq_bands=total_band,
-#                            normalize=False, ratios=ratios, ratios_triu=ratios_triu,
-#                            psd_method=psd_method, log=log, psd_params=psd_params)
-#     n_band = int(band_power.shape[0]/total_power.shape[0])
-#     total_power = np.tile(total_power, (n_band, 1))
-#     relaPower = (band_power/total_power).T.reshape(-1)
-#     return relaPower
+##测试
+
+def calculate_channel_correlation_pearson(channel_data1, channel_data2):
+    pearson = (np.corrcoef(channel_data1, channel_data2))[0, 1]
+    return np.abs(pearson)
+
+
+def calculate_channel_correlation_plv(channel_data1, channel_data2):
+    # 使用希尔伯特变换提取相位
+    analytic_signal1 = hilbert(channel_data1)
+    analytic_signal2 = hilbert(channel_data2)
+    phase1 = np.angle(analytic_signal1)
+    phase2 = np.angle(analytic_signal2)
+    # 计算 PLV
+    phase_diff = phase1 - phase2
+    plv = np.abs(np.mean(np.exp(1j * phase_diff)))
+    return plv
+
+
+def calculate_channel_correlation_coh(channel_data1, channel_data2,sfreq):
+    # 计算每对信号之间的相干性
+    _, coh = coherence(channel_data1, channel_data2, fs=sfreq, nperseg=channel_data1.shape[0] // 2)
+    # 取相干性矩阵的平均值作为代表值
+    mean_coh = np.mean(coh)
+    return mean_coh
+
+
+##测试
 
 def get_power_from_channel(data,wind,windowsover,i_channel,channel,sfreq,freq1,freq2):
     """
