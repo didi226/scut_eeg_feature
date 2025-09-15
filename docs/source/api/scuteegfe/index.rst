@@ -34,7 +34,11 @@ Functions
    scuteegfe.band_DE
    scuteegfe.band_Median_Frequency
    scuteegfe.bicoherence
+   scuteegfe.calculate_channel_correlation_coh
+   scuteegfe.calculate_channel_correlation_pearson
+   scuteegfe.calculate_channel_correlation_plv
    scuteegfe.calculate_dtf_pdc
+   scuteegfe.calculate_temp_correlation
    scuteegfe.compute_ARMA_kalman_filter
    scuteegfe.compute_Coherence
    scuteegfe.compute_DFA
@@ -48,6 +52,7 @@ Functions
    scuteegfe.compute_Renyi_Entropy
    scuteegfe.compute_Shannon_entropy
    scuteegfe.compute_Tsallis_Entropy
+   scuteegfe.compute_aac_connectivity
    scuteegfe.compute_alpha_asymetry
    scuteegfe.compute_aperiodic_periodic_offset_exponent_cf
    scuteegfe.compute_correlation_dimension
@@ -61,11 +66,11 @@ Functions
    scuteegfe.compute_multiscale_sample_entropy
    scuteegfe.compute_offset_exponent_cf
    scuteegfe.compute_pac_connectivity
+   scuteegfe.compute_pac_connectivity_mod
    scuteegfe.compute_periodic_pac_connectivity
    scuteegfe.compute_perm_entropy
    scuteegfe.compute_pow_freq_bands_cd
    scuteegfe.compute_pow_freq_bands_remove_aperiodic
-   scuteegfe.compute_stft_2019
    scuteegfe.compute_test2
    scuteegfe.compute_wavelet_entropy
    scuteegfe.filter_bank
@@ -595,35 +600,6 @@ Package Contents
           !! processed by numpydoc !!
 
 
-   .. py:attribute:: __feature_names
-      :value: None
-
-
-
-   .. py:attribute:: __features
-      :value: None
-
-
-
-   .. py:attribute:: __features
-
-
-   .. py:attribute:: __features_fix
-      :value: False
-
-
-
-   .. py:attribute:: __features_raw
-
-
-   .. py:attribute:: __list_multi_feature
-      :value: ['teager_kaiser_energy0', 'spect_slope0', 'energy_freq_bands0', 'wavelet_coef_energy0',...
-
-
-
-   .. py:attribute:: example_data
-
-
    .. py:property:: feature_names
       
       Get the feature names.
@@ -647,12 +623,6 @@ Package Contents
 
       ..
           !! processed by numpydoc !!
-
-
-   .. py:attribute:: feature_names_order
-
-
-   .. py:attribute:: features
 
 
    .. py:property:: features
@@ -680,22 +650,10 @@ Package Contents
           !! processed by numpydoc !!
 
 
-   .. py:attribute:: funcs
-
-
-   .. py:attribute:: funcs_params
-
-
    .. py:attribute:: funcs_subset_no_spect_slope
 
 
-   .. py:attribute:: log_teager_kaiser_energy
-
-
    .. py:attribute:: mne_defined_funcs
-
-
-   .. py:attribute:: n_channel
 
 
 .. py:function:: Processing_inf_nan(data)
@@ -899,6 +857,12 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
+.. py:function:: calculate_channel_correlation_coh(channel_data1, channel_data2, sfreq)
+
+.. py:function:: calculate_channel_correlation_pearson(channel_data1, channel_data2)
+
+.. py:function:: calculate_channel_correlation_plv(channel_data1, channel_data2)
+
 .. py:function:: calculate_dtf_pdc(X, sfreq=250, kind='dtf', p=None, normalize_=True, filter_bank=None)
 
    
@@ -923,6 +887,36 @@ Package Contents
 
    :returns: The computed matrix (DTF or PDC) with shape (n_channel, n_channel).
    :rtype: ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: calculate_temp_correlation(data, sfreq=250, method='correlation')
+
+   
+   Calculte non-spectral connectivity "correlation","plv", "coh" measures from EEG data.
+   :param data: (ndarray): Input data with shape (n_channels, n_times).
+   :param sfreq: Sampling frequency of the time signal. Default is 250 Hz.
+   :type sfreq: int
+   :param kind: Type of connectivity measure to compute. The available options are:"correlation","plv", "coh"
+   :type kind: str
+
+   :returns: (ndarray) (n_channels,n_channels)
+   :rtype: correlation_matrix
 
 
 
@@ -1307,7 +1301,7 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: compute_Renyi_Entropy(data, sfreq=250, round_para=1, win_times=1, alpha=2)
+.. py:function:: compute_Renyi_Entropy(data, sfreq=250, round_para=None, win_times=1, alpha=2)
 
    
    Compute the Renyi entropy for each channel using a sliding window approach.
@@ -1316,7 +1310,7 @@ Package Contents
    :type data: ndarray
    :param sfreq: Sampling frequency. Defaults to 250.
    :type sfreq: int, optional
-   :param round_para: Number of decimal places to round the data. Defaults to 1.
+   :param round_para: Number of decimal places to round the data.  Defaults to None, default retention of all digits for calculation.
    :type round_para: int, optional
    :param win_times: Window duration in seconds. Defaults to 1.
    :type win_times: int, optional
@@ -1347,7 +1341,7 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: compute_Shannon_entropy(data, sfreq=250, round_para=1, win_times=1)
+.. py:function:: compute_Shannon_entropy(data, sfreq=250, round_para=None, win_times=1)
 
    
    Compute the Shannon entropy of the data.
@@ -1356,7 +1350,7 @@ Package Contents
    :type data: ndarray
    :param sfreq: Sampling frequency. Defaults to 250.
    :type sfreq: int, optional
-   :param round_para: Rounding precision for data. Defaults to 1.
+   :param round_para: Rounding precision for data. Defaults to None, default retention of all digits for calculation.
    :type round_para: int, optional
    :param win_times: Window duration in seconds. Defaults to 1.
    :type win_times: int, optional
@@ -1385,7 +1379,7 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: compute_Tsallis_Entropy(data, sfreq=250, round_para=1, win_times=1, alpha=2)
+.. py:function:: compute_Tsallis_Entropy(data, sfreq=250, round_para=None, win_times=1, alpha=2)
 
    
    Compute the Tsallis entropy for each channel using a sliding window approach.
@@ -1394,7 +1388,7 @@ Package Contents
    :type data: ndarray
    :param sfreq: Sampling frequency. Defaults to 250.
    :type sfreq: int, optional
-   :param round_para: Number of decimal places to round the data. Defaults to 1.
+   :param round_para: Number of decimal places to round the data.  Defaults to None, default retention of all digits for calculation.
    :type round_para: int, optional
    :param win_times: Window duration in seconds. Defaults to 1.
    :type win_times: int, optional
@@ -1407,6 +1401,64 @@ Package Contents
    .. rubric:: Notes
 
    - The entropy is calculated for each window of data and then averaged across all windows.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_aac_connectivity(data, sfreq=250, band=np.array([[4, 8], [30, 45]]), tfr_mode='morlet', n_cycles=7, mode='self', approach_aac='mean', n_jobs=1)
+
+   
+   Compute Amplitude-Amplitude Coupling (AAC) connectivity from EEG data.
+
+   :param data: Input data with shape (n_channels, n_times).
+   :type data: ndarray
+   :param sfreq: Sampling frequency of the time signal. Default is 250 Hz.
+   :type sfreq: int
+   :param band: Frequency bands for PAC computation with shape (2, 2). Each row specifies the low and high frequencies for the band.
+   :type band: ndarray
+   :param tfr_mode: mode of time frequncy representation Options are:
+                    - "morlet"      See mne.time_frequency.tfr_array_morlet()
+                    - "multitaper"  See mne.time_frequency.tfr_array_multitaper()
+   :type tfr_mode: str
+   :param mode: Mode for AAC computation. Options are:
+                - "self": Compute AAC for each channel with itself.
+                - "non-self": Compute AAC between each pair of channels.
+   :type mode: str
+   :param n_cycles: Number of cycles in the wavelet when computing the TFR. If an array, the number of cycles is given for each frequency, otherwise a fixed value across all frequencies is used.
+   :type n_cycles: int|float
+   :param approach_aac: Approach for summarizing AAC values. Options are:
+                        - "mean": Use the mean AAC value.
+                        - "max": Use the maximum AAC value.
+   :type approach_aac: str
+
+   :returns:
+
+             Flattened array of AAC connectivity features. The shape depends on the `mode`:
+                 - If `mode` is "self": (n_channels,)
+                 - If `mode` is "non-self": (n_channels * n_channels,)
+   :rtype: ndarray
+
+   .. rubric:: Notes
+
+   - The `band` parameter specifies the frequency range for the low and high frequency bands used in PAC computation.
+   - In "self" mode, AAC is computed for each channel individually.
+   - In "non-self" mode, PAC is computed for every pair of channels.
+   - The `approach_aac` parameter determines how the AAC values are aggregated: either by taking the mean or the maximum value.
+   -[i,j] i for (band[0,0]  band [0,1]) seed,  j for (band[1,0]  band [1,1]) target
 
 
 
@@ -1547,7 +1599,7 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: compute_correlation_matrix(data, sfreq=250, kind='correlation', filter_bank=None, n_win=1)
+.. py:function:: compute_correlation_matrix(data, sfreq=250, kind='correlation', filter_bank=None, n_win=1, log=False, standardize=True)
 
    
    Compute various types of connectivity measures from EEG data.
@@ -1556,33 +1608,56 @@ Package Contents
    :type data: ndarray
    :param sfreq: Sampling frequency of the time signal. Default is 250 Hz.
    :type sfreq: int
-   :param kind: Type of connectivity measure to compute. The available options are:
-                - For measures using Nilearn:
-                  ["covariance", "correlation", "partial correlation", "tangent", "precision"]
-                - For measures using MNE-connectivity:
-                  ["ciplv", "ppc", "pli", "dpli", "wpli", "wpli2_debiased", "cohy", "imcoh", "coh", "plv", "gc", "gc_tr", "mic", "mim"]
-                Where:
-                  - "pli" stands for Phase Lag Index.
-                  - "wpli" stands for weighted Phase Lag Index.
-                  - "plv" stands for Phase Locking Value.
-                  - "gc" stands for Granger Causality.
-                  - "gc_tr" stands for Granger Causality with trends.
-                  - "mic" stands for Maximal Information Coefficient.
-                  - "mim" stands for Maximal Information Coefficient Mutual.
+   :param kind:
+                Type of connectivity measure to compute. The available options are:
+                 - **Nilearn Measures**:
+                   - `"covariance"`: Measures the covariance between signals.
+                   - `"correlation"`: Measures the Pearson correlation coefficient between signals.
+                   - `"partial correlation"`: Measures the partial correlation, accounting for the influence of other signals.
+                   - `"tangent"`: Computes the tangent connectivity measure.  For the use of “tangent” see Varoquaux et al [1].
+                   - `"precision"`: Measures the precision of the connectivity.
+                - **MNE-connectivity Measures**:
+                   - `"coh"`: Coherence.
+                   - `"cohy"`: Coherency.
+                   - `"imcoh"`: Imaginary part of Coherency.
+                   - `"cacoh"`: Canonical Coherency (CaCoh).
+                   - `"mic"`: Maximised Imaginary part of Coherency (MIC).
+                   - `"mim"`: Multivariate Interaction Measure (MIM).
+                   - `"plv"`: Phase-Locking Value (PLV).
+                   - `"ciplv"`: Corrected Imaginary PLV (ciPLV).
+                   - `"ppc"`: Pairwise Phase Consistency (PPC).
+                   - `"pli"`: Phase Lag Index (PLI).
+                   - `"pli2_unbiased"`: Unbiased estimator of squared PLI.
+                   - `"dpli"`: Directed PLI (DPLI).
+                   - `"wpli"`: Weighted PLI (WPLI).
+                   - `"wpli2_debiased"`: Debiased estimator of squared WPLI.
+                   - `"gc"`: State-space Granger Causality (GC).
+                   - `"gc_tr"`: State-space GC on time-reversed signals.
+                   - `"pec"`: power envolope correlation
+                - **My-connectivity Measures**:
+                   - `"mcorrelation"`: Measures the Pearson correlation coefficient between signals.
+                   - `"mcoh"`: Coherence.
+                   - `"mplv"`: Phase-Locking Value (PLV).
    :type kind: str
    :param filter_bank: Band-pass filter parameters with shape (2,) [low_freq, high_freq]. Default is None (no filtering).
    :type filter_bank: ndarray or list, optional
    :param n_win: Number of windows to split the data into. If the connectivity measure requires multiple epochs, this parameter helps in splitting one epoch into multiple parts. Default is 1.
    :type n_win: int
+   :param log: If True , square and take the log before orthonalizing envelopes or computing correlations.
+   :type log: default False
 
    :returns: Flattened array of the computed connectivity matrix with shape (n_channel * n_channel,).
    :rtype: ndarray
 
    .. rubric:: Notes
 
-   - For certain measures like "tangent", multiple epochs are required. Ensure `n_win` is set appropriately for such measures.
+   - For certain measures like "tangent","plv", multiple epochs are required. Ensure `n_win` is set appropriately for such measures.
    - If the `filter_bank` is specified, the data is band-pass filtered before computing the connectivity.
    - In case of an error during connectivity computation, the function returns an identity matrix and prints a warning message. Ensure the parameters are set correctly to avoid computation errors.
+
+   .. rubric:: References
+
+   [1]Gael Varoquaux, Flore Baronnet, Andreas Kleinschmidt, Pierre Fillard, and Bertrand Thirion. Detection of brain functional-connectivity difference in post-stroke patients using group-level covariance modeling. In Tianzi Jiang, Nassir Navab, Josien P. W. Pluim, and Max A. Viergever, editors, Medical image computing and computer-assisted intervention - MICCAI 2010, Lecture notes in computer science, 200–208. Berlin, Heidelberg, 2010. Springer. https://link.springer.com/chapter/10.1007/978-3-642-15705-9_25.
 
 
 
@@ -1886,7 +1961,7 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: compute_offset_exponent_cf(data, sfreq=250, n=1024)
+.. py:function:: compute_offset_exponent_cf(data, sfreq=250, n=1024, freq_range=None)
 
    
    Compute the offset and exponent of the power spectrum from EEG data.
@@ -1924,6 +1999,71 @@ Package Contents
        !! processed by numpydoc !!
 
 .. py:function:: compute_pac_connectivity(data, sfreq=250, method='tort', band=np.array([[4, 8], [30, 45]]), n_surrogates=0, mode='self', approach_pac='mean')
+
+   
+   Compute Phase-Amplitude Coupling (PAC) connectivity from EEG data.
+
+   :param data: Input data with shape (n_channels, n_times).
+   :type data: ndarray
+   :param sfreq: Sampling frequency of the time signal. Default is 250 Hz.
+   :type sfreq: int
+   :param method: Method for computing PAC. Options are:
+                  - "tort": Tortoise method
+                  - "jiang": Jiang method
+   :type method: str
+   :param band: Frequency bands for PAC computation with shape (2, 2). Each row specifies the low and high frequencies for the band.
+   :type band: ndarray
+   :param n_surrogates: Number of surrogates for significance testing. Default is 0 (no surrogates).
+   :type n_surrogates: int
+   :param mode: Mode for PAC computation. Options are:
+                - "self": Compute PAC for each channel with itself.
+                - "non-self": Compute PAC between each pair of channels.
+   :type mode: str
+   :param approach_pac: Approach for summarizing PAC values. Options are:
+                        - "mean": Use the mean PAC value.
+                        - "max": Use the maximum PAC value.
+   :type approach_pac: str
+
+   :returns:
+
+             Flattened array of PAC connectivity features. The shape depends on the `mode`:
+                 - If `mode` is "self": (n_channels,)
+                 - If `mode` is "non-self": (n_channels * n_channels,)
+   :rtype: ndarray
+
+   .. rubric:: Notes
+
+   - The `band` parameter specifies the frequency range for the low and high frequency bands used in PAC computation.
+   - The `method` parameter determines the algorithm used for PAC calculation.
+   - In "self" mode, PAC is computed for each channel individually.
+   - In "non-self" mode, PAC is computed for every pair of channels.
+   - The `approach_pac` parameter determines how the PAC values are aggregated: either by taking the mean or the maximum value.
+
+   .. rubric:: Example
+
+   To compute PAC using the "tort" method for each channel with itself, averaging the PAC values:
+   ```python
+   pac_features = compute_pac_connectivity(data, method='tort', mode='self', approach_pac='mean')
+   ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_pac_connectivity_mod(data, sfreq=250, method='tort', band=np.array([[4, 8], [30, 45]]), n_surrogates=0, mode='self', approach_pac='mean')
 
    
    Compute Phase-Amplitude Coupling (PAC) connectivity from EEG data.
@@ -2113,40 +2253,6 @@ Package Contents
    :type freq_range: tuple or None
 
    :returns: The power in each frequency band after removing aperiodic components. Flattened array of shape (n_channels * n_bands,).
-   :rtype: ndarray
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   ..
-       !! processed by numpydoc !!
-
-.. py:function:: compute_stft_2019(data, sfreq=250, win_times=10, n_fre_idx=36)
-
-   
-   Compute the short-time Fourier transform (STFT) and sum the energy at fixed frequency points.
-
-   :param data: The input data array with shape (n_channels, n_times).
-   :type data: ndarray
-   :param sfreq: Sampling frequency of the time signal. Default is 250 Hz.
-   :type sfreq: int
-   :param win_times: Window length in seconds. Default is 10.
-   :type win_times: int
-   :param n_fre_idx: Number of frequency points to sum. Default is 36.
-   :type n_fre_idx: int
-
-   :returns: STFT-based features with shape (n_channels, section_num, n_fre_idx).
    :rtype: ndarray
 
 

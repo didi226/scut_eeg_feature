@@ -9,5 +9,7 @@ Example
    function.ipynb
    connectivity.ipynb
    Phase_amplitude_coupling.ipynb
+   Amplitude_amplitude_coupling.ipynb
+
    .. sssm_example.ipynb
 

@@ -1165,9 +1165,9 @@ def compute_aac_connectivity(data, sfreq=250, band=np.array([[4, 8],[30,45]]),tf
         aac.compute(indices=indices_self,f1s=(band[0, 0], band[0, 1]),f2s=(band[1, 0], band[1, 1]),n_jobs=n_jobs)
         aac_results = aac.results.get_results(copy=False)
         if approach_aac == "mean":
-            feature= np.mean(aac_results,axis=(1,2))
+            feature= np.mean(aac_results, axis=(1,2))
         elif approach_aac == "max":
-            feature = np.max(aac_results,axis=(1,2))
+            feature = np.max(aac_results, axis=(1,2))
         feature = feature.reshape(-1)
     elif mode== "non-self":
         aac.compute(f1s=(band[0, 0], band[0, 1]), f2s=(band[1, 0], band[1, 1]), n_jobs=n_jobs)

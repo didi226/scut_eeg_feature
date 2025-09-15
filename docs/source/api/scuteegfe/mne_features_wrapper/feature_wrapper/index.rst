@@ -528,35 +528,6 @@ Module Contents
           !! processed by numpydoc !!
 
 
-   .. py:attribute:: __feature_names
-      :value: None
-
-
-
-   .. py:attribute:: __features
-      :value: None
-
-
-
-   .. py:attribute:: __features
-
-
-   .. py:attribute:: __features_fix
-      :value: False
-
-
-
-   .. py:attribute:: __features_raw
-
-
-   .. py:attribute:: __list_multi_feature
-      :value: ['teager_kaiser_energy0', 'spect_slope0', 'energy_freq_bands0', 'wavelet_coef_energy0',...
-
-
-
-   .. py:attribute:: example_data
-
-
    .. py:property:: feature_names
       
       Get the feature names.
@@ -580,12 +551,6 @@ Module Contents
 
       ..
           !! processed by numpydoc !!
-
-
-   .. py:attribute:: feature_names_order
-
-
-   .. py:attribute:: features
 
 
    .. py:property:: features
@@ -613,21 +578,9 @@ Module Contents
           !! processed by numpydoc !!
 
 
-   .. py:attribute:: funcs
-
-
-   .. py:attribute:: funcs_params
-
-
    .. py:attribute:: funcs_subset_no_spect_slope
 
 
-   .. py:attribute:: log_teager_kaiser_energy
-
-
    .. py:attribute:: mne_defined_funcs
-
-
-   .. py:attribute:: n_channel
 
 

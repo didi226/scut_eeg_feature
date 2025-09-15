@@ -9,6 +9,7 @@ Dependencies
 * ``mne`` (>=1.6)
 * ``numpy`` (>=1.21)
 * ``scipy`` (>=1.4.0)
+* ``scikit-learn`` (>= 1.3.0)
 
 
 We require that you use Python 3.9 or higher.
