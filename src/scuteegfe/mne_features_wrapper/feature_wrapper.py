@@ -22,7 +22,7 @@ class Feature:
                                    'hjorth_mobility_spect', 'hjorth_complexity_spect', 'hjorth_mobility',
                                    'hjorth_complexity', 'higuchi_fd', 'katz_fd', 'zero_crossings', 'line_length',
                                    'spect_entropy', 'svd_entropy', 'svd_fisher_info', 'energy_freq_bands',
-                                   'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy'}
+                                   'spect_edge_freq', 'wavelet_coef_energy', 'teager_kaiser_energy','aac_connectivity','pac_connectivity'}
 
 
     def __init__(self, data=None, sfreq=250, selected_funcs=None, funcs_params=None, n_jobs=1, ch_names=None,

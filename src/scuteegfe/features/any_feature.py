@@ -1160,23 +1160,24 @@ def compute_aac_connectivity(data, sfreq=250, band=np.array([[4, 8],[30,45]]),tf
                                     tfr_mode=tfr_mode ,n_cycles=n_cycles, verbose=False)
     aac = AAC(data=fft_coeffs, freqs=freqs, sampling_freq=sfreq, verbose=False)
     if mode == "self":
-        ch_idx = tuple(range(n_channels))
+        ch_idx = tuple(range(n_channel))
         indices_self = (ch_idx, ch_idx)
         aac.compute(indices=indices_self,f1s=(band[0, 0], band[0, 1]),f2s=(band[1, 0], band[1, 1]),n_jobs=n_jobs)
         aac_results = aac.results.get_results(copy=False)
         if approach_aac == "mean":
-            feature= np.mean(aac_results,axis=1)
-        elif approach_pac == "max":
-            feature = np.max(pac_matrix,axis=1)
+            feature= np.mean(aac_results,axis=(1,2))
+        elif approach_aac == "max":
+            feature = np.max(aac_results,axis=(1,2))
+        feature = feature.reshape(-1)
     elif mode== "non-self":
         aac.compute(f1s=(band[0, 0], band[0, 1]), f2s=(band[1, 0], band[1, 1]), n_jobs=n_jobs)
         aac_results = aac.results.get_results(copy=False)
         if approach_aac == "mean":
             feature=  np.mean(aac_results,axis=(1,2))
-        elif approach_pac == "max":
+        elif approach_aac == "max":
             feature= np.max(aac_results,axis=(1,2))
         feature.reshape(n_channel,n_channel)
-    feature = feature.T.reshape(-1)
+        feature = feature.T.reshape(-1)
     return feature
 def compute_pac_connectivity_mod(data,sfreq=250, method='tort', band=np.array([[4, 8],[30,45]]),
                              n_surrogates=0, mode="self", approach_pac="mean"):

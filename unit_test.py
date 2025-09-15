@@ -353,18 +353,15 @@ class MyTestCase(unittest.TestCase):
                                      } )
         #fix_missing()
         #reorder()
-        fea2 = fea1.reorder()
         print(fea1.features.shape)
     def test_aac_connectivity(self):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
         data = np.random.rand(3, 5, 1000)
         fea1 = Feature(data = data, sfreq=250, selected_funcs=['aac_connectivity'],
-                       funcs_params={
-                                     "aac_connectivity__sfreq": 250,
+                       funcs_params={"aac_connectivity__sfreq": 250,
                                      "aac_connectivity__band": np.array([[4, 8], [30, 45]]),
-                                     "aac_connectivity__mode": 'non-self'
+                                     "aac_connectivity__mode": 'self'
                                      } )
-        fea2 = fea1.reorder()
         print(fea1.features.shape)
     def test_pec_connectivity(self):
         from mne_connectivity import envelope_correlation
@@ -416,7 +413,7 @@ if __name__ == '__main__':
 
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_aac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_pac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 
