@@ -1289,7 +1289,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: compute_offset_exponent_cf(data, sfreq=250, n=1024, freq_range=None)
+.. py:function:: compute_offset_exponent_cf(data, sfreq=250, n=1024, freq_range=None, method='welch')
 
    
    Compute the offset and exponent of the power spectrum from EEG data.
