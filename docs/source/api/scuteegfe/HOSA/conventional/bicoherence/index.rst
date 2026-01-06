@@ -9,14 +9,14 @@ Functions
 
 .. autoapisummary::
 
-   scuteegfe.HOSA.conventional.bicoherence.bicoherence
+   scuteegfe.HOSA.conventional.bicoherence.calculate_bicoherence
    scuteegfe.HOSA.conventional.bicoherence.test
 
 
 Module Contents
 ---------------
 
-.. py:function:: bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None)
+.. py:function:: calculate_bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None)
 
    
    Direct (FD) method for estimating bicoherence
