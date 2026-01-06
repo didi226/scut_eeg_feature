@@ -278,7 +278,11 @@ class MyTestCase(unittest.TestCase):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
         ###构造随机矩阵
         data = np.random.rand(10, 20, 500)
-        fea1 = Feature(data=data, sfreq=250,selected_funcs=['aperiodic_periodic_offset_exponent_cf'])
+        fea1 = Feature(data=data, sfreq=160,selected_funcs=['offset_exponent_cf'],
+                funcs_params={"offset_exponent_cf__sfreq":160,
+                       "offset_exponent_cf__n":512,
+                                     "offset_exponent_cf__freq_range":[1,40]},
+              )
         print(fea1.features.shape)
         print(fea1.features[1,:,1])
 
@@ -413,7 +417,7 @@ if __name__ == '__main__':
 
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_pac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_offset_exponent_cf')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 

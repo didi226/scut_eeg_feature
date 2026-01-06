@@ -983,7 +983,7 @@ def compute_correlation_matrix(data,sfreq=250,
         [1]Gael Varoquaux, Flore Baronnet, Andreas Kleinschmidt, Pierre Fillard, and Bertrand Thirion. Detection of brain functional-connectivity difference in post-stroke patients using group-level covariance modeling. In Tianzi Jiang, Nassir Navab, Josien P. W. Pluim, and Max A. Viergever, editors, Medical image computing and computer-assisted intervention - MICCAI 2010, Lecture notes in computer science, 200–208. Berlin, Heidelberg, 2010. Springer. https://link.springer.com/chapter/10.1007/978-3-642-15705-9_25.
     """
 
-    n_channel,n_times=data.shape
+    n_channel,n_times = data.shape
     adjusted_n_times = (n_times // n_win) * n_win
     data = data[:,:adjusted_n_times]
     #tangent 这个是多个epoch放在一起才能计算的
@@ -1358,7 +1358,7 @@ def compute_aperiodic_periodic_offset_exponent_cf(data, sfreq=250, n=1024,freq_r
     feature = feature.T.reshape(-1)
     return feature
 
-def compute_offset_exponent_cf(data,sfreq=250,n=1024,freq_range=None):
+def compute_offset_exponent_cf(data,sfreq=250,n=1024,freq_range=None, method='welch'):
     """
     Compute the offset and exponent of the power spectrum from EEG data.
 
@@ -1377,11 +1377,11 @@ def compute_offset_exponent_cf(data,sfreq=250,n=1024,freq_range=None):
     from mne_features.univariate import compute_spect_slope
     n_channel, n_times = data.shape
     feature = np.zeros((n_channel,2))
-    feature[:,2]=compute_Median_Frequency(data,sfreq=sfreq,band=np.array([[8,12]]),N=n)
+    # feature[:,2]=compute_Median_Frequency(data,sfreq=sfreq,band=np.array([[8,12]]),N=n)
     # print(feature[:,2])
     if freq_range is None:
         freq_range=[0.1,50]
-    slope_para=compute_spect_slope(sfreq, data, fmin=freq_range[0], fmax=freq_range[1],with_intercept=True, psd_method='welch', psd_params=None)
+    slope_para=compute_spect_slope(sfreq, data, fmin=freq_range[0], fmax=freq_range[1],with_intercept=True, psd_method=method, psd_params=None)
     slope_para=slope_para.reshape(n_channel,4)
     # print(slope_para)
     # print(slope_para.shape)
