@@ -1,5 +1,5 @@
 numpy==1.26.0
-Sphinx==7.2.6
+Sphinx==7.3.7
 sphinx-autobuild==2024.4.16
 sphinx-markdown-tables==0.0.17
 sphinx-rtd-theme==2.0.0
