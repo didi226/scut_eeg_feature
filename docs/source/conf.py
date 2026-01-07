@@ -19,7 +19,7 @@ version= '0.4.2'
 release = '0.4.2'
 extensions = [ 
     'sphinx.ext.napoleon',
-    'sphinx.ext.autodoc',
+    #'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
@@ -113,7 +113,7 @@ autoapi_keep_files = True
 autoapi_root = "api"
 autoapi_member_order = "groupwise"
 # autoapi_generate_api_docs = True
-# autoapi_add_toctree_entry = False
+autoapi_add_toctree_entry = True
 
 
 
