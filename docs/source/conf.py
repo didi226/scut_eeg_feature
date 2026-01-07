@@ -95,9 +95,9 @@ inheritance_graph_attrs = dict(
     ratio="compress",
 )
 
-autoapi_ignore = [
-    "*HOSA/conventional/*",
-]
+# autoapi_ignore = [
+#     "*HOSA/conventional/*",
+# ]
 
 
 
