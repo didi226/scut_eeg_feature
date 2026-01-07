@@ -5,8 +5,8 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-
 import os
+os.environ["SPHINX_NO_PICKLE"] = "1"
 import sys
 from pathlib import Path
 from sphinx.locale import _
