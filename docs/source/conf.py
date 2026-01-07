@@ -19,7 +19,7 @@ release = '0.4.2'
 extensions = [ 
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
-    #'sphinx.ext.autosummary',
+    'sphinx.ext.autosummary',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
@@ -101,7 +101,7 @@ html_logo = "_static/logo.svg"
 html_favicon = "_static/logo.svg"
 
 
-autosummary_generate = False
+autosummary_generate = True
 autodoc_typehints = "description"
 autodoc_member_order = "groupwise"
 # -- Options for autoapi -------------------------------------------------------
@@ -110,8 +110,8 @@ autoapi_dirs = ["../../src"]
 autoapi_keep_files = True
 autoapi_root = "api"
 autoapi_member_order = "groupwise"
-autoapi_generate_api_docs = True
-autoapi_add_toctree_entry = False
+# autoapi_generate_api_docs = True
+# autoapi_add_toctree_entry = False
 
 
 
