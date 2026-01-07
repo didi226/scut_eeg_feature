@@ -45,6 +45,6 @@ SEFEA-Python Homepage
 
    Install<install>
    Example<example/index>
-   API<auto/index>
+   API<api/index>
    Contribute<contribute>
 

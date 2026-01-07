@@ -141,7 +141,12 @@ html_theme_options = {
         "announcement": "This is a community-supported different kinds of features for EEG or other time series signal . If you'd like to contribute, check out  <a href='https://github.com/didi226/scut_eeg_feature'>our GitHub repository</a>. Your contributions are welcome! ",
         }
 
-
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "**.ipynb_checkpoints",
+]
 
 
 
