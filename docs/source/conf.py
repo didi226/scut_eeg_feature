@@ -108,7 +108,7 @@ html_logo = "_static/logo.svg"
 html_favicon = "_static/logo.svg"
 
 
-autosummary_generate = False
+autosummary_generate = True
 autodoc_typehints = "description"
 autodoc_member_order = "groupwise"
 # -- Options for autoapi -------------------------------------------------------
