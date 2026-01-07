@@ -115,7 +115,7 @@ autoapi_dirs = ["../../src/scuteegfe"]
 autoapi_keep_files = False
 autoapi_root = "api"
 autoapi_member_order = "groupwise"
-# autoapi_generate_api_docs = True
+autoapi_generate_api_docs = True
 autoapi_add_toctree_entry = True
 
 
