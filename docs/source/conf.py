@@ -9,14 +9,8 @@ import os
 import sys
 from pathlib import Path
 from sphinx.locale import _
-
-HERE = Path(__file__).parent.resolve()          # docs/source
-SRC = (HERE / "../../src").resolve()            # repo/src
-sys.path.insert(0, str(HERE))
-
-sys.path.insert(0, str(SRC))
-autoapi_dirs = [str((SRC / "scuteegfe").resolve())]
-
+sys.path.append(str(Path(".").resolve()))
+sys.path.insert(0, os.path.abspath('../../src'))
 
 project = 'SCUT EEG Feature'
 copyright = '2024, SCUT EEG  Community'
@@ -101,6 +95,9 @@ inheritance_graph_attrs = dict(
     ratio="compress",
 )
 
+autoapi_ignore = [
+    "*HOSA/conventional/*",
+]
 
 
 
@@ -114,7 +111,7 @@ autodoc_member_order = "groupwise"
 # -- Options for autoapi -------------------------------------------------------
 autoapi_type = "python"
 # autoapi_dirs = ["../../src"]
-# autoapi_dirs = ["../../src/scuteegfe"]
+autoapi_dirs = ["../../src/scuteegfe"]
 autoapi_keep_files = False
 autoapi_root = "api"
 autoapi_member_order = "groupwise"
