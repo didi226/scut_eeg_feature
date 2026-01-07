@@ -9,3 +9,6 @@
 /test
 *.idea/
 *.pyc
+# Sphinx / Jupyter build cache
+docs/source/.virtual_documents/
+
