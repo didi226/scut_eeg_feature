@@ -160,6 +160,7 @@ exclude_patterns = [
     ".DS_Store",
     "**.ipynb_checkpoints",
 ]
+exclude_patterns += ["**/demo/**", "**/*test*.py"]
 
 
 
