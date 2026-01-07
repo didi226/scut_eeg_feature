@@ -38,7 +38,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    # 'myst_nb',
+    #'myst_nb',
     'myst_parser',
     'ablog',
     'jupyter_sphinx',

@@ -1,4 +1,5 @@
-Sphinx==7.3.7
+numpy==1.26.0
+Sphinx==7.2.6
 sphinx-autobuild==2024.4.16
 sphinx-markdown-tables==0.0.17
 sphinx-rtd-theme==2.0.0
@@ -9,9 +10,9 @@ sphinxcontrib-jquery==4.1
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.7
 sphinxcontrib-serializinghtml==1.1.10
-scikit-learn==1.7.0
-sphinx-autoapi==3.1.2
-jupyterlite-sphinx
+scikit-learn==1.3.0
+sphinx-autoapi==2.1.1
+jupyterlite-sphinx==0.15.0
 sphinxcontrib-youtube==1.4.1
 sphinx-favicon==1.0.1
 sphinx-togglebutton
@@ -24,27 +25,26 @@ pydata_sphinx_theme==0.15.4
 sphinxext-rediraffe==0.2.7
 sphinx_design==0.6.0
 sphinx_copybutton==0.5.2
-requests
+requests==2.32.5
 importlib-metadata
-einops
-mne_features
-EMD-signal
-scipy
-PyWavelets
-pyts
-antropy
-pyentrp
-tftb
-statsmodels
-scipy
-emd-signal
-pyentrp
-nolds
-pactools
-EntropyHub
-pykalman
-mne_connectivity
-spkit
-fooof
-nilearn
-pybispectra
+einops==0.7.0
+mne_features==0.2
+EMD-signal==1.6.0
+scipy==1.13.1
+PyWavelets==1.6.0
+pyts== 0.13.0
+antropy==0.1.6
+pyentrp==0.9.0
+tftb== 0.1.4
+statsmodels==0.14.2
+pyentrp==0.9.0
+nolds==0.5.2
+pactools==0.3.1
+EntropyHub== 2.0
+pykalman== 0.9.7
+mne_connectivity== 0.6.0
+spkit==0.0.9.7
+fooof== 1.1.0
+nilearn==0.10.4
+pybispectra== 1.2.2
+
