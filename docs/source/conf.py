@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from sphinx.locale import _
 sys.path.append(str(Path(".").resolve()))
+sys.path.insert(0, os.path.abspath('../../src'))
 
 project = 'SCUT EEG Feature'
 copyright = '2024, SCUT EEG  Community'
@@ -106,7 +107,8 @@ autodoc_typehints = "description"
 autodoc_member_order = "groupwise"
 # -- Options for autoapi -------------------------------------------------------
 autoapi_type = "python"
-autoapi_dirs = ["../../src"]
+# autoapi_dirs = ["../../src"]
+autoapi_dirs = ["../../src/scuteegfe"]
 autoapi_keep_files = True
 autoapi_root = "api"
 autoapi_member_order = "groupwise"
@@ -158,4 +160,4 @@ html_show_sourcelink = False
 html_copy_source = False
 html_static_path = ['_static']
 # html_css_files = ["style.css"]
-sys.path.insert(0, os.path.abspath('../../src'))
+
