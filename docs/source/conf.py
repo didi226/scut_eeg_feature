@@ -14,11 +14,11 @@ sys.path.append(str(Path(".").resolve()))
 project = 'SCUT EEG Feature'
 copyright = '2024, SCUT EEG  Community'
 author = 'XiaoYu Bao & Di Chen'
-version= '0.0.1'
-release = '0.0.1'
+version= '0.4.2'
+release = '0.4.2'
 extensions = [ 
     'sphinx.ext.napoleon',
-    #'sphinx.ext.autodoc',
+    'sphinx.ext.autodoc',
     #'sphinx.ext.autosummary',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
