@@ -5,12 +5,15 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+
 import os
 import sys
 from pathlib import Path
 from sphinx.locale import _
 sys.path.append(str(Path(".").resolve()))
 sys.path.insert(0, os.path.abspath('../../src'))
+
+
 
 project = 'SCUT EEG Feature'
 copyright = '2024, SCUT EEG  Community'
