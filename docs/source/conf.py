@@ -14,7 +14,6 @@ sys.path.append(str(Path(".").resolve()))
 sys.path.insert(0, os.path.abspath('../../src'))
 
 
-
 project = 'SCUT EEG Feature'
 copyright = '2024, SCUT EEG  Community'
 author = 'XiaoYu Bao & Di Chen'
