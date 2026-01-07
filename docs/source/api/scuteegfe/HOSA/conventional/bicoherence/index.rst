@@ -10,6 +10,7 @@ Functions
 .. autoapisummary::
 
    scuteegfe.HOSA.conventional.bicoherence.calculate_bicoherence
+   scuteegfe.HOSA.conventional.bicoherence.test
 
 
 Module Contents
@@ -55,4 +56,6 @@ Module Contents
 
    ..
        !! processed by numpydoc !!
+
+.. py:function:: test()
 

@@ -1,4 +1,3 @@
-__all__ = ["calculate_bicoherence"]
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from scipy.linalg import hankel

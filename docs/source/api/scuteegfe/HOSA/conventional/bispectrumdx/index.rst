@@ -10,6 +10,7 @@ Functions
 .. autoapisummary::
 
    scuteegfe.HOSA.conventional.bispectrumdx.bispectrumdx
+   scuteegfe.HOSA.conventional.bispectrumdx.test
 
 
 Module Contents
@@ -72,4 +73,6 @@ Module Contents
 
    ..
        !! processed by numpydoc !!
+
+.. py:function:: test()
 

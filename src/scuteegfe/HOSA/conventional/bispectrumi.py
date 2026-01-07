@@ -1,4 +1,3 @@
-__all__ = ["bispectrumi"]
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from ..tools.tools import nextpow2, flat_eq, here

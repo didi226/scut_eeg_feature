@@ -1638,7 +1638,7 @@ def pow_freq_bands_from_spectrum(freq_bands,freqs,spectrum_frequencies):
     Returns:
         ndarray: The power in each frequency band. Shape (n_channels, n_bands).
     """
-    
+
     n_bands = freq_bands.shape[0]
     n_channels = spectrum_frequencies.shape[0]
     feature = np.zeros((n_channels, n_bands))
