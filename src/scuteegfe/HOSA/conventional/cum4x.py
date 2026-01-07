@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-from .cum2x import *
+from .cum2x import cum2x
 
 
 def cum4x(w, x, y, z, maxlag=0, nsamp=0, overlap=0, flag='biased', k1=0, k2=0):

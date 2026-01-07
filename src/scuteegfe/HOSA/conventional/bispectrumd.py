@@ -7,7 +7,7 @@ import scipy.io as sio
 from scipy.linalg import hankel
 from scipy.signal import convolve2d
 
-from ..tools.tools import *
+from ..tools.tools import nextpow2, flat_eq, here
 
 
 def bispectrumd(y, nfft=None, wind=None, nsamp=None, overlap=None):

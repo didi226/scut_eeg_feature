@@ -2,8 +2,8 @@
 
 from __future__ import division
 
-from .cum3est import *
-from .cum4est import *
+from .cum3est import cum3est
+from .cum4est import cum4est
 
 
 def cumest(y, norder=2, maxlag=0, nsamp=None, overlap=0, flag='biased', k1=0, k2=0):

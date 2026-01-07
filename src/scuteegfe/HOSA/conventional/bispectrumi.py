@@ -5,7 +5,7 @@ from __future__ import division
 import matplotlib.pyplot as plt
 import scipy.io as sio
 
-from ..tools.tools import *
+from ..tools.tools import nextpow2, flat_eq, here
 
 np.set_printoptions(linewidth=120)
 

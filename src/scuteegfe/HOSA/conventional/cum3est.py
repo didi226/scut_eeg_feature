@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-from ..tools.tools import *
+from ..tools.tools import nextpow2, flat_eq, here
 
 
 def cum3est(y, maxlag, nsamp, overlap, flag, k1):

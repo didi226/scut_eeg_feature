@@ -3,8 +3,8 @@ from __future__ import division
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from scipy.linalg import hankel
-from ..tools.tools import *
-__all__ = ["calculate_bicoherence",]
+from ..tools.tools import nextpow2,flat_eq
+__all__ = ["calculate_bicoherence"]
 def calculate_bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None):
     """
     Direct (FD) method for estimating bicoherence.
@@ -118,8 +118,9 @@ def calculate_bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None):
 
 
 def test():
+    from ..tools.tools import here
     qpc = sio.loadmat(here(__file__) + '/demo/qpc.mat')
-    dbic = bicoherence(qpc['zmat'])
+    dbic = calculate_bicoherence(qpc['zmat'])
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ from __future__ import division
 
 import scipy.io as sio
 
-from ..tools.tools import *
+from ..tools.tools import nextpow2, flat_eq, here
 
 
 def cum2x(x, y, maxlag=0, nsamp=0, overlap=0, flag='biased'):
