@@ -35,16 +35,16 @@ PyWavelets==1.6.0
 pyts== 0.13.0
 antropy==0.1.6
 pyentrp==0.9.0
-tftb== 0.1.4
+tftb==0.1.4
 statsmodels==0.14.2
 pyentrp==0.9.0
 nolds==0.5.2
 pactools==0.3.1
-EntropyHub== 2.0
-pykalman== 0.9.7
-mne_connectivity== 0.6.0
+EntropyHub==2.0
+pykalman==0.9.7
+mne_connectivity==0.6.0
 spkit==0.0.9.7
 fooof== 1.1.0
 nilearn==0.10.4
-pybispectra== 1.2.2
+pybispectra==1.2.2
 
