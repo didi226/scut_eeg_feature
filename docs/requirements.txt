@@ -28,7 +28,7 @@ sphinx_copybutton==0.5.2
 requests==2.32.5
 importlib-metadata
 einops==0.7.0
-mne_features==1.1
+mne_features==0.3
 EMD-signal==1.6.0
 scipy==1.13.1
 PyWavelets==1.6.0
