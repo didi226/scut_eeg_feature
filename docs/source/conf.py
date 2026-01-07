@@ -198,4 +198,4 @@ html_show_sourcelink = False
 html_copy_source = False
 html_static_path = ['_static']
 # html_css_files = ["style.css"]
-sys.path.insert(0, os.path.abspath('../../src'))
+sys.path.insert(0, os.path.abspath('../../src/scuteegfe'))

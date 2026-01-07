@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import scipy.io as sio
 from scipy.linalg import hankel
 from ..tools.tools import *
+__all__ = ["calculate_bicoherence",]
 def calculate_bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None):
     """
     Direct (FD) method for estimating bicoherence.
