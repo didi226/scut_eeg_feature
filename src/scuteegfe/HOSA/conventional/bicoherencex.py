@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import division
-
+__all__ = ["bicoherencex"]
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio

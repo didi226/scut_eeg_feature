@@ -1,12 +1,8 @@
-#!/usr/bin/env python
-
-from __future__ import division
-
+__all__ = ["bispectrumdx"]
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from scipy.linalg import hankel
 from scipy.signal import convolve2d
-
 from ..tools.tools import nextpow2, flat_eq, here
 
 
@@ -14,27 +10,47 @@ def bispectrumdx(x, y, z, nfft=None, wind=None, nsamp=None, overlap=None):
     """
     Direct (FD) method for estimating the cross-bispectrum.
 
-    Args:
-        x: data vector or time-series
-        y: data vector or time-series (same dimensions as x)
-        z: data vector or time-series (same dimensions as x)
-        nfft: fft length [default = power of two > segsamp]
-        wind: window specification for frequency-domain smoothing
-            if 'wind' is a scalar, it specifies the length of the side
-                of the square for the Rao-Gabr optimal window [default=5]
-            if 'wind' is a vector, a 2D window will be calculated via
-                w2(i,j) = wind(i) * wind(j) * wind(i+j)
-            if 'wind' is a matrix, it specifies the 2-D filter directly
-        segsamp: samples per segment [default: such that we have 8 segments]
-            if x is a matrix, segsamp is set to the number of rows
-        overlap: percentage overlap, allowed range [0,99] [default = 50]
-            if x is a matrix, overlap is set to 0.
+    Parameters
+    ----------
+    x : array-like
+        Data vector or time-series.
+    y : array-like
+        Data vector or time-series with the same dimensions as ``x``.
+    z : array-like
+        Data vector or time-series with the same dimensions as ``x``.
+    nfft : int, optional
+        FFT length. Default is the next power of two greater than
+        the segment length.
+    wind : int or array-like, optional
+        Window specification for frequency-domain smoothing.
 
-    Returns:
-        Bspec: estimated cross-bispectrum, an nfft x nfft array, with origin
-            at the center, and axes pointing down and to the right.
-        waxis: vector of frequencies associated with the rows and columns
-            of Bspec; sampling frequency is assumed to be 1.
+        If ``wind`` is a scalar, it specifies the length of the side
+        of the square for the Rao-Gabr optimal window (default is 5).
+
+        If ``wind`` is a vector, a 2D window is calculated as::
+
+            w2(i, j) = wind(i) * wind(j) * wind(i + j)
+
+        If ``wind`` is a matrix, it specifies the 2-D filter directly.
+    segsamp : int, optional
+        Number of samples per segment. Default is chosen such that
+        there are 8 segments.
+
+        If ``x`` is a matrix, ``segsamp`` is set to the number of rows.
+    overlap : float, optional
+        Percentage overlap between segments, in the range [0, 99].
+        Default is 50.
+
+        If ``x`` is a matrix, overlap is set to 0.
+
+    Returns
+    -------
+    Bspec : ndarray
+        Estimated cross-bispectrum, an ``nfft × nfft`` array, with the
+        origin at the center and axes pointing down and to the right.
+    waxis : ndarray
+        Vector of frequencies associated with the rows and columns of
+        ``Bspec``. The sampling frequency is assumed to be 1.
     """
 
     (lx, lrecs) = x.shape

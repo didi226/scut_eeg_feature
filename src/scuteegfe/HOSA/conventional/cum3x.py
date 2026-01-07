@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import division
-
 import scipy.io as sio
-
 from ..tools.tools import nextpow2, flat_eq, here
 
 

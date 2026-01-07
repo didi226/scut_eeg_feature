@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-from __future__ import division
+__all__ = ["calculate_bicoherence"]
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from scipy.linalg import hankel
 from ..tools.tools import nextpow2,flat_eq
-__all__ = ["calculate_bicoherence"]
 def calculate_bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None):
     """
     Direct (FD) method for estimating bicoherence.

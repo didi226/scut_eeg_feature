@@ -48,6 +48,7 @@ def compute_DFA(data, sfreq=250, win_times=1):
         Peng C K, Havlin S, Stanley H E, Goldberger A L. Quantification of scaling exponents and crossover phenomena in
         nonstationary heartbeat time series[J]. Chaos: An Interdisciplinary Journal of Nonlinear Science, 1995, 5(1): 82-87.
     """
+
     win_len = sfreq * win_times
     n_channel, n_times = data.shape
     section_num = n_times // win_len
@@ -73,6 +74,7 @@ def compute_Shannon_entropy(data, sfreq=250,round_para=None, win_times=1):
     References:
         Shannon C E. A mathematical theory of communication[J]. Bell System Technical Journal, 1948, 27(3): 379-423.
     """
+
     if round_para is not None:
         data = np.round(data, round_para)
     win_len = sfreq * win_times
@@ -103,6 +105,7 @@ def Tsallis_Entropy(time_series,alpha=2):
     Note:
         There is a question about why the base of the logarithm used is 2.
     """
+
     # Check if string
     if not isinstance(time_series, str):
         time_series = list(time_series)
@@ -134,6 +137,7 @@ def Renyi_Entropy(time_series,alpha):
      Returns:
          float: Renyi entropy value.
      """
+
     # Check if string
     if not isinstance(time_series, str):
         time_series = list(time_series)
@@ -178,6 +182,7 @@ def compute_ARMA_kalman_filter(data,AR_p=10,MA_q=1):
         [1] Rossow A B, Salles E O T, Côco K F. Automatic sleep staging using a single-channel EEG modeling by Kalman filter
         and HMM[C]//ISSNIP Biosignals and Biorobotics Conference 2011. IEEE, 2011: 1-6.
     """
+
     n_channel, n_times = data.shape
     feature=np.zeros((n_channel,AR_p+MA_q))
     for i_channel in range(n_channel):
@@ -200,6 +205,7 @@ def get_fft_values(y, N=None, f_s=250):
         tuple: Frequencies and FFT values.
 
     """
+
     if N is None:
         N=y.shape[0]
     f_values = np.linspace(0.0, f_s/2.0, N//2)
@@ -218,6 +224,7 @@ def find_nearest(array, value):
     Returns:
         int: Index of the nearest value in the array.
     """
+
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return idx
@@ -235,6 +242,7 @@ def compute_Harmonic_Parameters(data,sfreq=250,
     Returns:
         ndarray: Harmonic parameters with shape (n_channels, n_band).
     """
+
    n_channel, n_times = data.shape
    band_num=band.shape[0]
    feature=np.zeros((n_channel,band_num))
@@ -271,6 +279,7 @@ def compute_Median_Frequency(data,sfreq=250,
         [2] Thongpanja S, Phinyomark A, Phukpattaranont P, et al. Mean and median frequency of EMG signal to determine muscle force based on
             time-dependent power spectrum[J]. Elektronika ir Elektrotechnika, 2013, 19(3): 51-56.
     """
+
     n_channel, n_times = data.shape
     band_num = band.shape[0]
     feature = np.zeros((n_channel, band_num))
@@ -291,6 +300,7 @@ def band_Median_Frequency(Pxx, f, band=None):
     Returns:
         ndarray: Median frequency values for each band.
     """
+
     fea_num=int(band.shape[0])
     Median_Frequency=np.empty((fea_num));
     for i in range(fea_num):
@@ -321,6 +331,7 @@ def filter_bank(data,sfreq=250,frequences=None):
     Returns:
         ndarray: Filtered data with shape (n_filters, n_channel, n_times).
     """
+
     n_filters=frequences.shape[0]
     n_channel,n_times=data.shape
     filters_data=np.zeros((n_filters,n_channel,n_times))
@@ -346,6 +357,7 @@ def compute_Coherence(data,Co_channel=None,
     Notes:
         For single-channel data, this function is not applicable.
     """
+
     n_channel, n_times = data.shape
     band_num=band.shape[0]
     feature = np.zeros((n_channel, n_channel ,band_num))
@@ -388,21 +400,22 @@ def compute_Coherence(data,Co_channel=None,
 
 def compute_Renyi_Entropy(data, sfreq=250,round_para=None, win_times=1,alpha=2):
     """
-     Compute the Renyi entropy for each channel using a sliding window approach.
+    Compute the Renyi entropy for each channel using a sliding window approach.
 
-     Args:
+    Args:
          data (ndarray): Input data with shape (n_channels, n_times).
          sfreq (int, optional): Sampling frequency. Defaults to 250.
          round_para (int, optional): Number of decimal places to round the data.  Defaults to None, default retention of all digits for calculation.
          win_times (int, optional): Window duration in seconds. Defaults to 1.
          alpha (float, optional): Renyi entropy parameter. Defaults to 2.
 
-     Returns:
+    Returns:
          ndarray: Computed Renyi entropy with shape (n_channels, section_num).
 
-     Notes:
+    Notes:
          - The entropy is calculated for each window of data and then averaged across all windows.
-     """
+    """
+
     if round_para is not None:
         data = np.round(data, round_para)
     win_len = sfreq * win_times
@@ -432,6 +445,7 @@ def compute_Tsallis_Entropy(data, sfreq=250,round_para=None, win_times=1,alpha=2
     Notes:
       - The entropy is calculated for each window of data and then averaged across all windows.
     """
+
     if round_para is not None:
         data = np.round(data, round_para)
     win_len = sfreq * win_times
@@ -459,6 +473,7 @@ def compute_Hilbert_abs(data):
     Notes:
      - This function is currently deprecated.
     """
+
     n_channel, n_times = data.shape
     feature = abs(hilbert(data)).reshape(-1)
     # feature=feature[np.newaxis, :];
@@ -479,6 +494,7 @@ def compute_EMD(data, sfreq=250, EMD_times=1, EMD_params=6):
     Notes:
         - The EMD is applied to segments of the data, and the resulting IMFs are used as features.
     """
+
     EMD_length = sfreq * EMD_times
     n_channel, n_times = data.shape
     section_num = n_times // EMD_length
@@ -508,6 +524,7 @@ def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None
     Notes:
         - This function is experimental and may have issues.
     """
+
     n_channel,n_times=data.shape
     feature=[]
     for N_channel in range(n_channel):
@@ -541,6 +558,7 @@ def compute_Itakura_Distance(data,baseline_data = None,dist='square', options={'
     References:
         https://pyts.readthedocs.io/en/stable/generated/pyts.metrics.dtw.html#pyts.metrics.dtw
     """
+
     n_channel, n_times = data.shape
     Itakura_distance = np.zeros((n_channel))
     for i_channel in range(n_channel):
@@ -573,6 +591,7 @@ def compute_wavelet_entropy(data,sfreq=250,m_times=1,m_Par_ratios=1,m_entropy=Tr
         ndarray: Computed features. If Average=True, shape is (n_channels, fea_num + m_Par_ratios * 2).
                  If Average=False, shape is (n_channels, (fea_num + m_Par_ratios * 2) * section_num).
     """
+
     time_sec = int(m_times * sfreq)
     fea_num = int(band.shape[0] + m_Par_ratios * 2)
     n_channel, n_times = data.shape
@@ -613,6 +632,7 @@ def imp_extract_wavelet(section_data,Fs, time_sec,wavelet_name):
     Returns:
         tuple: (cwt_re, f1), where cwt_re is the wavelet transform, and f1 is the frequency vector.
     """
+
     f = np.arange(1, 129, 0.2)
     [wt, f1] = pywt.cwt(section_data, f, wavelet_name, 1 / Fs)  # 'mexh'
     cwt_re = np.sum(abs(wt), axis=1) * 2 / time_sec;  #
@@ -629,6 +649,7 @@ def imp_extract_fft(section_data,Fs,time_sec):
     Returns:
         tuple: (m_fft, f), where m_fft is the FFT of the data, and f is the frequency vector.
     """
+
     f = np.arange(time_sec) / (time_sec / Fs)
     m_fft = abs(fft(section_data, time_sec) * 2 / time_sec);
     return m_fft[range(int(time_sec / 2))], f[range(int(time_sec/ 2))]
@@ -645,6 +666,7 @@ def band_DE(Pxx, f, Par_ratios=1, band=None):
     Returns:
         ndarray: Computed features.
     """
+
     fea_num=int(band.shape[0])
     psd = np.empty((fea_num))
     for i in range(fea_num):
@@ -668,6 +690,7 @@ def Processing_inf_nan(data):
     Returns:
         ndarray: Processed data with infinite and NaN values handled.
     """
+
     data_inf = np.isinf(data)
     data[data_inf] = 0
     data_nan = np.isnan(data)
@@ -684,6 +707,7 @@ def compute_test2(data):
     Returns:
         ndarray: Mean values, shape (n_channels,).
     """
+
     return np.mean(data, axis=-1)
 
 
@@ -698,6 +722,7 @@ def compute_Num_zero_crossings(data):
     Returns:
         ndarray: Number of zero crossings per channel, shape (n_channels,).
     """
+
     return ant.num_zerocross(data, axis=1)
 
 def compute_Petrosian_fd(data):
@@ -710,6 +735,7 @@ def compute_Petrosian_fd(data):
     Returns:
         ndarray: Fractal dimension per channel, shape (n_channels,).
     """
+
     return ant.petrosian_fd(data, axis=1)
 
 
@@ -723,6 +749,7 @@ def compute_perm_entropy(data):
     Returns:
         ndarray: Permutation entropy per channel, shape (n_channels,).
     """
+
     return np.array([ant.perm_entropy(each_channel, normalize=True) for each_channel in data])
 
 
@@ -736,6 +763,7 @@ def compute_detrended_fluctuation(data):
     Returns:
       ndarray: Detrended fluctuation per channel, shape (n_channels,).
     """
+
     return np.array([ant.detrended_fluctuation(each_channel) for each_channel in data])
 
 
@@ -752,6 +780,7 @@ def compute_multiscale_sample_entropy(data, sample_length=1, tolerance=None, max
     Returns:
         ndarray: Multiscale sample entropy features, shape (n_channels, maxscale).
     """
+
     n_channel, n_times = data.shape
     if maxscale is None:
         maxscale = n_times
@@ -776,6 +805,7 @@ def compute_multiscale_permutation_entropy(data, m=1, delay=1, scale=1):
     Returns:
         ndarray: Multiscale permutation entropy features with shape (n_channels,).
     """
+
     n_channel, n_times = data.shape
     multi_per_en_value = np.zeros((n_channel,scale))
     for i_channel in  range(n_channel):
@@ -799,6 +829,7 @@ def compute_fuzzy_entropy(data,m=2, tau=1, r=(.2,2), Fx='default', Logx=np.exp(1
     Returns:
         ndarray: Fuzzy entropy features with shape (n_channels,).
     """
+
     n_channel, n_times = data.shape
     FuzzEn_value = np.zeros((n_channel,m))
     for i_channel in  range(n_channel):
@@ -834,7 +865,8 @@ def compute_cross_frequency_coupling(data,sfreq=250,band=np.array([[1,4], [4,8],
 
         Notes:
         - This function has been abandoned.
-        """
+    """
+
     n_channel, n_times = data.shape
     if mode=='eeg_rhythm':
         band_num = band.shape[0]
@@ -901,6 +933,7 @@ def flatten_lower_triangle(matrix):
     Returns:
         ndarray: Flattened array with shape (n_channel*(n_channel-1)//2,).
     """
+
     rows = len(matrix)
     flattened = []
     for i in range(rows):
@@ -920,6 +953,7 @@ def reshape_to_lower_triangle(flattened_array,n_channel):
     Returns:
         ndarray: Square matrix with shape (n_channel, n_channel).
     """
+
     matrix=np.zeros((n_channel,n_channel))
     count = 0
     for i in range(n_channel):
@@ -1037,6 +1071,7 @@ def calculate_temp_correlation(data, sfreq=250, method="correlation"):
         correlation_matrix: (ndarray) (n_channels,n_channels)
 
     """
+
     num_channels = data.shape[0]
     correlation_matrix = np.zeros((num_channels, num_channels))
     for i in range(num_channels):
@@ -1154,6 +1189,7 @@ def compute_aac_connectivity(data, sfreq=250, band=np.array([[4, 8],[30,45]]),tf
        - The `approach_aac` parameter determines how the AAC values are aggregated: either by taking the mean or the maximum value.
        -[i,j] i for (band[0,0]  band [0,1]) seed,  j for (band[1,0]  band [1,1]) target
     """
+
     n_channel, n_times = data.shape
     freqs = np.arange(max(band[0,0]-1,0), band[1,1]+1, 0.5)
     fft_coeffs, freqs = compute_tfr(data= np.expand_dims(data, axis=0), sampling_freq=sfreq, freqs=freqs,
@@ -1256,6 +1292,7 @@ def compute_correlation_dimension(data,emb_dim=10):
         emb_dim:     int                嵌入维度默认为10
     Returns:         feature            shape (n_channels)
     """
+
     import nolds
     n_channel, n_times = data.shape
     feature = np.zeros((n_channel))
@@ -1307,6 +1344,7 @@ def compute_dispersion_entropy(data,classes=10,scale=1,emb_dim=2,delay=1,
            - if classes**emb_dim > (N-(emb_dim-1)*delay), then de_normalize=2
     Returns:         feature            shape (n_channels)
     """
+
     import spkit
     n_channel, n_times = data.shape
     feature = np.zeros((n_channel))
@@ -1374,6 +1412,7 @@ def compute_offset_exponent_cf(data,sfreq=250,n=1024,freq_range=None, method='we
         - Computes the median frequency and the spectral slope (offset and exponent) using `compute_spect_slope`.
         - The spectral slope is inverted in the returned feature array.
     """
+
     from mne_features.univariate import compute_spect_slope
     n_channel, n_times = data.shape
     feature = np.zeros((n_channel,2))
@@ -1439,6 +1478,7 @@ def get_power_from_channel(data,wind,windowsover,i_channel,channel,sfreq,freq1,f
     Notes:
         - Uses `plt.specgram` to compute the power spectrum of the channel data.
     """
+
     L = channel.index(i_channel)
     signL = data[L, :]
     powerL, freqsL, t, _ = plt.specgram(signL, mode='psd', NFFT=wind, noverlap=windowsover, Fs=sfreq)
@@ -1474,6 +1514,7 @@ def compute_alpha_asymetry(data, sfreq=100, freq1=8, freq2=12, left='F3', right=
         - Computes alpha asymmetry using different methods depending on the `mode` parameter.
         - If `mode` is "eeglab", uses the power spectral density (PSD) of the specified channels.
     """
+
     if channel is None:
         channel = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'FC3', 'FCz', 'FC4',
                    'T7', 'C3', 'Cz', 'C4', 'T8', 'CP3', 'CPz', 'CP4', 'P7', 'P3',
@@ -1535,6 +1576,7 @@ def compute_pow_freq_bands_remove_aperiodic(data, sfreq=250, freq_bands=np.array
     Returns:
         ndarray: The power in each frequency band after removing aperiodic components. Flattened array of shape (n_channels * n_bands,).
     """
+
     n_channel, n_times = data.shape
     if psd_method == "fft":
         freqs = np.fft.fftfreq(n_times, 1/sfreq)
@@ -1571,6 +1613,7 @@ def compute_pow_freq_bands_cd(data, sfreq=250, freq_bands=np.array([[1, 4], [4, 
     Returns:
         ndarray: The power in each frequency band. Flattened array of shape (n_channels * n_bands,).
     """
+
     n_channel, n_times = data.shape
     if psd_method == "fft":
         freqs = np.fft.fftfreq(n_times, 1/sfreq)
@@ -1595,6 +1638,7 @@ def pow_freq_bands_from_spectrum(freq_bands,freqs,spectrum_frequencies):
     Returns:
         ndarray: The power in each frequency band. Shape (n_channels, n_bands).
     """
+    
     n_bands = freq_bands.shape[0]
     n_channels = spectrum_frequencies.shape[0]
     feature = np.zeros((n_channels, n_bands))

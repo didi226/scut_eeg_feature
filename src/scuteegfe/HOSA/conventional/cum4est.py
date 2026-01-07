@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-
-from __future__ import division
-
 from .cum2est import cum2est
 from .cum2x import cum2x
 

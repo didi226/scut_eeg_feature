@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import division
-
+__all__ = ["bispectrumd"]
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from scipy.linalg import hankel
@@ -14,27 +11,43 @@ def bispectrumd(y, nfft=None, wind=None, nsamp=None, overlap=None):
     """
     Direct (FD) method for estimating the bispectrum.
 
-    Args:
-        y: data vector or time-series
-        nfft: FFT length [default = power of two greater than nsamp]
-        wind: window specification for frequency-domain smoothing
-            if ``wind`` is a scalar, it specifies the length of the side
-                of the square for the Rao-Gabr optimal window [default = 5]
-            if ``wind`` is a vector, a 2D window is calculated via
-                w2(i, j) = wind(i) * wind(j) * wind(i + j)
-            if ``wind`` is a matrix, it specifies the 2-D filter directly
-        nsamp: samples per segment [default: such that there are 8 segments]
-            if ``y`` is a matrix, ``nsamp`` is set to the number of rows
-        overlap: percentage overlap [default = 50]
-            if ``y`` is a matrix, overlap is set to 0
+    Parameters
+    ----------
+    y : array-like
+        Data vector or time-series.
+    nfft : int, optional
+        FFT length. Default is the next power of two greater than the
+        number of samples.
+    wind : int or array-like, optional
+        Window specification for frequency-domain smoothing.
 
-    Returns:
-        Bspec: estimated bispectrum, an nfft x nfft array, with origin
-            at the center, and axes pointing down and to the right
-        waxis: vector of frequencies associated with the rows and columns
-            of ``Bspec``; sampling frequency is assumed to be 1
+        If ``wind`` is a scalar, it specifies the length of the side
+        of the square for the Rao-Gabr optimal window (default is 5).
+
+        If ``wind`` is a vector, a 2D window is calculated as::
+
+            w2(i, j) = wind(i) * wind(j) * wind(i + j)
+
+        If ``wind`` is a matrix, it specifies the 2-D filter directly.
+    nsamp : int, optional
+        Number of samples per segment. Default is chosen such that
+        there are 8 segments.
+
+        If ``y`` is a matrix, ``nsamp`` is set to the number of rows.
+    overlap : float, optional
+        Percentage overlap between segments. Default is 50.
+
+        If ``y`` is a matrix, overlap is set to 0.
+
+    Returns
+    -------
+    Bspec : ndarray
+        Estimated bispectrum, an ``nfft × nfft`` array, with the origin
+        at the center and axes pointing down and to the right.
+    waxis : ndarray
+        Vector of frequencies associated with the rows and columns of
+        ``Bspec``. The sampling frequency is assumed to be 1.
     """
-
     (ly, nrecs) = y.shape
     if ly == 1:
         y = y.shape(1, -1)

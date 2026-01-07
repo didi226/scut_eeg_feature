@@ -1,10 +1,6 @@
-#!/usr/bin/env python
-
-from __future__ import division
-
+__all__ = ["bispectrumi"]
 import matplotlib.pyplot as plt
 import scipy.io as sio
-
 from ..tools.tools import nextpow2, flat_eq, here
 
 np.set_printoptions(linewidth=120)

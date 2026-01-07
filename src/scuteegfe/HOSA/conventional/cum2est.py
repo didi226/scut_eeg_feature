@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-
-from __future__ import division
-
 from ..tools.tools import nextpow2, flat_eq, here
 
 

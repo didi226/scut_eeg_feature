@@ -10,7 +10,6 @@ Functions
 .. autoapisummary::
 
    scuteegfe.HOSA.conventional.bispectrumdx.bispectrumdx
-   scuteegfe.HOSA.conventional.bispectrumdx.test
 
 
 Module Contents
@@ -21,28 +20,41 @@ Module Contents
    
    Direct (FD) method for estimating the cross-bispectrum.
 
-   :param x: data vector or time-series
-   :param y: data vector or time-series (same dimensions as x)
-   :param z: data vector or time-series (same dimensions as x)
-   :param nfft: fft length [default = power of two > segsamp]
-   :param wind: window specification for frequency-domain smoothing
-                if 'wind' is a scalar, it specifies the length of the side
-                    of the square for the Rao-Gabr optimal window [default=5]
-                if 'wind' is a vector, a 2D window will be calculated via
-                    w2(i,j) = wind(i) * wind(j) * wind(i+j)
-                if 'wind' is a matrix, it specifies the 2-D filter directly
-   :param segsamp: samples per segment [default: such that we have 8 segments]
-                   if x is a matrix, segsamp is set to the number of rows
-   :param overlap: percentage overlap, allowed range [0,99] [default = 50]
-                   if x is a matrix, overlap is set to 0.
+   :param x: Data vector or time-series.
+   :type x: array-like
+   :param y: Data vector or time-series with the same dimensions as ``x``.
+   :type y: array-like
+   :param z: Data vector or time-series with the same dimensions as ``x``.
+   :type z: array-like
+   :param nfft: FFT length. Default is the next power of two greater than
+                the segment length.
+   :type nfft: int, optional
+   :param wind: Window specification for frequency-domain smoothing.
 
-   :returns:
+                If ``wind`` is a scalar, it specifies the length of the side
+                of the square for the Rao-Gabr optimal window (default is 5).
 
-             estimated cross-bispectrum, an nfft x nfft array, with origin
-                 at the center, and axes pointing down and to the right.
-             waxis: vector of frequencies associated with the rows and columns
-                 of Bspec; sampling frequency is assumed to be 1.
-   :rtype: Bspec
+                If ``wind`` is a vector, a 2D window is calculated as::
+
+                    w2(i, j) = wind(i) * wind(j) * wind(i + j)
+
+                If ``wind`` is a matrix, it specifies the 2-D filter directly.
+   :type wind: int or array-like, optional
+   :param segsamp: Number of samples per segment. Default is chosen such that
+                   there are 8 segments.
+
+                   If ``x`` is a matrix, ``segsamp`` is set to the number of rows.
+   :type segsamp: int, optional
+   :param overlap: Percentage overlap between segments, in the range [0, 99].
+                   Default is 50.
+
+                   If ``x`` is a matrix, overlap is set to 0.
+   :type overlap: float, optional
+
+   :returns: * **Bspec** (*ndarray*) -- Estimated cross-bispectrum, an ``nfft × nfft`` array, with the
+               origin at the center and axes pointing down and to the right.
+             * **waxis** (*ndarray*) -- Vector of frequencies associated with the rows and columns of
+               ``Bspec``. The sampling frequency is assumed to be 1.
 
 
 
@@ -60,6 +72,4 @@ Module Contents
 
    ..
        !! processed by numpydoc !!
-
-.. py:function:: test()
 

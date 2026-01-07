@@ -27,9 +27,12 @@ Module Contents
    This function emulates the MATLAB operation ``x(:) = y``.
 
    :param x: Input array whose shape is preserved.
+   :type x: ndarray
    :param y: Array whose elements are assigned to ``x`` in column-major order.
+   :type y: ndarray
 
    :returns: An array with the same shape as ``x`` after linear assignment.
+   :rtype: ndarray
 
 
 
@@ -56,8 +59,10 @@ Module Contents
    By default, this returns the directory of the current script.
 
    :param f: File path. Defaults to the current file.
+   :type f: str or pathlib.Path, optional
 
    :returns: Absolute path of the directory containing ``f``.
+   :rtype: str
 
 
 
@@ -85,16 +90,20 @@ Module Contents
    scalars, vectors, or matrices along a specified axis.
 
    :param arrs: Iterable of scalars, vectors, or arrays to be concatenated.
+   :type arrs: iterable
    :param axis: Axis along which the arrays are concatenated.
+   :type axis: int
 
    :returns: A NumPy array formed by concatenating the inputs in ``arrs``.
+   :rtype: ndarray
 
    .. rubric:: Examples
 
-   Python equivalent of MATLAB-style array creation:
-   >>> make_arr((4, range(1, 10)), axis=0)
-   array([[4],
-          [1, 2, 3, 4, 5, 6, 7, 8, 9]])
+   .. code-block:: python
+
+       make_arr((4, range(1, 10)), axis=0)
+       array([[4],
+              [1, 2, 3, 4, 5, 6, 7, 8, 9]])
 
 
 
@@ -119,15 +128,10 @@ Module Contents
    Return the next highest power of two greater than a given value.
 
    :param num: Input value.
+   :type num: int
 
    :returns: The smallest power of two that is strictly greater than ``num``.
-
-   .. rubric:: Examples
-
-   >>> nextpow2(1000)
-   1024
-   >>> nextpow2(1024)
-   2048
+   :rtype: int
 
    .. rubric:: Notes
 
@@ -160,9 +164,12 @@ Module Contents
    shape of an array with ones if its dimensionality is less than ``n``.
 
    :param o: Input array-like object.
+   :type o: array_like
    :param n: Desired number of dimensions.
+   :type n: int
 
    :returns: A tuple representing the shape of ``o`` with length ``n``.
+   :rtype: tuple
 
 
 
