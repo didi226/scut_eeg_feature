@@ -117,6 +117,8 @@ autoapi_root = "api"
 autoapi_member_order = "groupwise"
 autoapi_generate_api_docs = True
 autoapi_add_toctree_entry = True
+autoapi_python_use_implicit_namespaces = False
+autoapi_python_class_content = "class"
 
 
 
