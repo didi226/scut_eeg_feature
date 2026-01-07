@@ -19,34 +19,32 @@ Module Contents
 .. py:function:: cum4x(w, x, y, z, maxlag=0, nsamp=0, overlap=0, flag='biased', k1=0, k2=0)
 
    
-   Fourth-order cross-cumulants.
-   :param w:          if w,x,y,z are matrices, rather than vectors, columns are
-                      assumed to correspond to independent realizations,
-                      overlap is set to 0, and samp_seg to the row dimension.
-             maxlag - maximum lag to be computed    [default = 0]
-   :param x:          if w,x,y,z are matrices, rather than vectors, columns are
-                      assumed to correspond to independent realizations,
-                      overlap is set to 0, and samp_seg to the row dimension.
-             maxlag - maximum lag to be computed    [default = 0]
-   :param y:          if w,x,y,z are matrices, rather than vectors, columns are
-                      assumed to correspond to independent realizations,
-                      overlap is set to 0, and samp_seg to the row dimension.
-             maxlag - maximum lag to be computed    [default = 0]
-   :param z  - data vectors/matrices with identical dimensions:          if w,x,y,z are matrices, rather than vectors, columns are
-                                                                         assumed to correspond to independent realizations,
-                                                                         overlap is set to 0, and samp_seg to the row dimension.
-                                                                maxlag - maximum lag to be computed    [default = 0]
+   Estimate the fourth-order cross-cumulant for fixed lags.
 
-     samp_seg - samples per segment  [default = data_length]
-      overlap - percentage overlap of segments [default = 0]
-                overlap is clipped to the allowed range of [0,99].
-        flag : 'biased', biased estimates are computed  [default]
-               'unbiased', unbiased estimates are computed.
-       k1,k2 : the fixed lags in C4(m,k1,k2) defaults to 0
+   :param w: data vector or matrix
+   :param x: data vector or matrix (same dimensions as w)
+   :param y: data vector or matrix (same dimensions as w)
+   :param z: data vector or matrix (same dimensions as w)
+             if w, x, y, and z are matrices, columns correspond to independent
+             realizations; overlap is set to 0 and nsamp is set to the
+             row dimension
+   :param maxlag: maximum lag to be computed [default = 0]
+   :param nsamp: samples per segment [default = data length]
+   :param overlap: percentage overlap of segments [default = 0]
+                   overlap is clipped to the allowed range of [0, 99]
+   :param flag: cumulant estimation flag
+                'biased': biased estimates are computed [default]
+                'unbiased': unbiased estimates are computed
+   :param k1: first fixed lag in the fourth-order cross-cumulant C4(m, k1, k2)
+              [default = 0]
+   :param k2: second fixed lag in the fourth-order cross-cumulant C4(m, k1, k2)
+              [default = 0]
 
-   Output:
-        y_cum:  estimated fourth-order cross cumulant,
-              c4(t1,t2,t3) := cum( w^*(t), x(t+t1), y(t+t2), z^*(t+t3) )
+   :returns:
+
+             estimated fourth-order cross-cumulant sequence
+                 c4(t1, t2, t3) := cum(w*(t), x(t + t1), y(t + t2), z*(t + t3))
+   :rtype: y_cum
 
 
 

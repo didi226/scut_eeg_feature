@@ -12,26 +12,28 @@ from ..tools.tools import nextpow2, flat_eq, here
 
 def bicoherencex(w, x, y, nfft=None, wind=None, nsamp=None, overlap=None):
     """
-  Direct (FD) method for estimating cross-bicoherence
-  Parameters:
-    w,x,y - data vector or time-series
-          - should have identical dimensions
-    nfft - fft length [default = power of two > nsamp]
-           actual size used is power of two greater than 'nsamp'
-    wind - specifies the time-domain window to be applied to each
-           data segment; should be of length 'segsamp' (see below);
-      otherwise, the default Hanning window is used.
-    segsamp - samples per segment [default: such that we have 8 segments]
-            - if x is a matrix, segsamp is set to the number of rows
-    overlap - percentage overlap, 0 to 99  [default = 50]
-            - if y is a matrix, overlap is set to 0.
+    Direct (FD) method for estimating cross-bicoherence.
 
-  Output:
-    bic     - estimated cross-bicoherence: an nfft x nfft array, with
-              origin at center, and axes pointing down and to the right.
-    waxis   - vector of frequencies associated with the rows and columns
-              of bic;  sampling frequency is assumed to be 1.
-  """
+    Args:
+        w: data vector or time-series
+        x: data vector or time-series (same dimensions as ``w``)
+        y: data vector or time-series (same dimensions as ``w``)
+        nfft: FFT length [default = power of two greater than nsamp]
+            actual size used is the power of two greater than ``nsamp``
+        wind: time-domain window applied to each data segment
+            should be of length ``nsamp`` (see below); otherwise,
+            the default Hanning window is used
+        nsamp: samples per segment [default: such that there are 8 segments]
+            if the inputs are matrices, ``nsamp`` is set to the number of rows
+        overlap: percentage overlap, allowed range [0, 99] [default = 50]
+            if the inputs are matrices, overlap is set to 0
+
+    Returns:
+        bic: estimated cross-bicoherence, an nfft x nfft array, with
+            origin at the center, and axes pointing down and to the right
+        waxis: vector of frequencies associated with the rows and columns
+            of ``bic``; sampling frequency is assumed to be 1
+    """
 
     if w.shape != x.shape or x.shape != y.shape:
         raise ValueError('w, x and y should have identical dimentions')

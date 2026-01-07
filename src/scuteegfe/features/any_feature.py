@@ -6,7 +6,7 @@ from PyEMD import EMD
 import antropy as ant
 import pywt
 from pyentrp import entropy as ent
-from ..HOSA.conventional.bicoherence import bicoherence
+from ..HOSA.conventional.bicoherence import calculate_bicoherence
 from pyts.metrics.dtw import dtw
 from scipy import signal
 from scipy.fftpack import fft
@@ -514,7 +514,7 @@ def compute_hosa_bicoherence(data,nfft=None, wind=None, nsamp=None, overlap=None
         y = data[N_channel, :]
         if y.ndim == 1:
             y = y[np.newaxis, :]
-        bic, _ = bicoherence(y, nfft, wind, nsamp, overlap)
+        bic, _ = calculate_bicoherence(y, nfft, wind, nsamp, overlap)
         feature.append(bic)
     feature = np.array(feature).reshape((n_channel,-1))
     feature = feature.T.reshape(-1)

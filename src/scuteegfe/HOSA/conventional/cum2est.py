@@ -7,20 +7,24 @@ from ..tools.tools import *
 
 def cum2est(y, maxlag, nsamp, overlap, flag):
     """
-  CUM2EST Covariance function.
-  Should be involed via "CUMEST" for proper parameter checks.
-  Parameters:
-           y: input data vector (column)
-      maxlag: maximum lag to be computed
-    samp_seg: samples per segment (<=0 means no segmentation)
-     overlap: percentage overlap of segments
-        flag: 'biased', biased estimates are computed
-              'unbiased', unbiased estimates are computed.
+    Estimate the second-order cumulant (covariance) function.
 
-  Output:
-       y_cum: estimated covariance,
-              C2(m)  -maxlag <= m <= maxlag
-  """
+    This function implements CUM2EST and should be invoked via ``cumest``
+    for proper parameter checking.
+
+    Args:
+        y: input data vector (column)
+        maxlag: maximum lag to be computed
+        samp_seg: samples per segment (<= 0 means no segmentation)
+        overlap: percentage overlap of segments
+        flag: covariance estimation flag
+            'biased': biased estimates are computed
+            'unbiased': unbiased estimates are computed
+
+    Returns:
+        y_cum: estimated covariance sequence
+            C2(m), where -maxlag <= m <= maxlag
+    """
 
     (n1, n2) = shape(y, 2)
     N = n1 * n2

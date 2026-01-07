@@ -2,14 +2,14 @@
 .. _Contribute:
 
 Contribute to SEFEA
-******************
+********************
 
 There are many ways to contribute to SEFEA: reporting bugs, adding new functions, improving the documentation, etc...
 
 If you like SEFEA, you can also consider `buying the developers a headband from HNNK <https://item.taobao.com/item.htm?spm=a21n57.1.item.2.76f05263QxvUVm&priceTId=2150407317212886249531433e9816&utparam=%7B%22aplus_abtest%22:%22b85e6cf8b990cb19de672e9c8381c9e4%22%7D&id=745006412856&ns=1&abbucket=15>`_!
 
 Code guidelines
----------------
+----------------
 
 Before starting new code, we highly recommend opening an issue on `GitHub <https://github.com/didi226/scut_eeg_feature>`_ to discuss potential changes.
 
@@ -32,7 +32,7 @@ Before starting new code, we highly recommend opening an issue on `GitHub <https
      $ pytest
 
 Checking and building documentation
------------------------------------
+------------------------------------
 
 SSS's documentation (including docstring in code) uses ReStructuredText format,
 see `Sphinx documentation <http://www.sphinx-doc.org/en/master/>`_ to learn more about editing them. The code

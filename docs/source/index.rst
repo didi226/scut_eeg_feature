@@ -1,4 +1,4 @@
-.. Sleep Semantic Segmentation documentation master file, created by
+.. SCUT EEG FEATURE documentation master file, created by
    sphinx-quickstart on Wed Jul 17 11:41:03 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -14,7 +14,7 @@
     <style type="text/css">h1 {display:none;}</style>
 
 SEFEA-Python Homepage
-===================
+======================
 
 .. LOGO
 
@@ -37,7 +37,7 @@ SEFEA-Python Homepage
 =======================================================
 
 .. toctree::
-   .. :glob:
+   :glob:
    :hidden:
    :includehidden:
    :maxdepth: 1

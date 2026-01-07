@@ -12,5 +12,5 @@ Example
    Amplitude_amplitude_coupling.ipynb
    aperodic_analysis.ipynb
 
-   .. sssm_example.ipynb
+
 

@@ -18,19 +18,24 @@ Module Contents
 .. py:function:: cum2est(y, maxlag, nsamp, overlap, flag)
 
    
-   CUM2EST Covariance function.
-   Should be involed via "CUMEST" for proper parameter checks.
+   Estimate the second-order cumulant (covariance) function.
+
+   This function implements CUM2EST and should be invoked via ``cumest``
+   for proper parameter checking.
+
    :param y: input data vector (column)
+   :param maxlag: maximum lag to be computed
+   :param samp_seg: samples per segment (<= 0 means no segmentation)
+   :param overlap: percentage overlap of segments
+   :param flag: covariance estimation flag
+                'biased': biased estimates are computed
+                'unbiased': unbiased estimates are computed
 
-       maxlag: maximum lag to be computed
-     samp_seg: samples per segment (<=0 means no segmentation)
-      overlap: percentage overlap of segments
-         flag: 'biased', biased estimates are computed
-               'unbiased', unbiased estimates are computed.
+   :returns:
 
-   Output:
-        y_cum: estimated covariance,
-               C2(m)  -maxlag <= m <= maxlag
+             estimated covariance sequence
+                 C2(m), where -maxlag <= m <= maxlag
+   :rtype: y_cum
 
 
 

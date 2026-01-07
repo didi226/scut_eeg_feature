@@ -7,21 +7,25 @@ from ..tools.tools import *
 
 def cum3est(y, maxlag, nsamp, overlap, flag, k1):
     """
-  UM3EST Third-order cumulants.
-  Should be invoked via "CUMEST" for proper parameter checks
-  Parameters:
-           y: input data vector (column)
-      maxlag: maximum lag to be computed
-    samp_seg: samples per segment
-     overlap: percentage overlap of segments
-       flag : 'biased', biased estimates are computed  [default]
-              'unbiased', unbiased estimates are computed.
-          k1: the fixed lag in c3(m,k1): see below
+    Estimate the third-order cumulant for a fixed lag.
 
-  Output:
-       y_cum:  estimated third-order cumulant,
-               C3(m,k1)  -maxlag <= m <= maxlag
-  """
+    This function implements CUM3EST and should be invoked via ``cumest``
+    for proper parameter checking.
+
+    Args:
+        y: input data vector (column)
+        maxlag: maximum lag to be computed
+        nsamp: samples per segment
+        overlap: percentage overlap of segments
+        flag: cumulant estimation flag
+            'biased': biased estimates are computed [default]
+            'unbiased': unbiased estimates are computed
+        k1: fixed lag in the third-order cumulant C3(m, k1)
+
+    Returns:
+        y_cum: estimated third-order cumulant sequence
+            C3(m, k1), where -maxlag <= m <= maxlag
+    """
 
     (n1, n2) = np.shape(y)
     N = n1 * n2

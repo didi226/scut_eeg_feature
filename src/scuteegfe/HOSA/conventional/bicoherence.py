@@ -3,31 +3,30 @@ from __future__ import division
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from scipy.linalg import hankel
-from scuteegfe.HOSA.tools.tools import *
+from ..tools.tools import *
 def calculate_bicoherence(y, nfft=None, wind=None, nsamp=None, overlap=None):
     """
-  Direct (FD) method for estimating bicoherence
-  Parameters:
-    y     - data vector or time-series
-    nfft - fft length [default = power of two > segsamp]
-           actual size used is power of two greater than 'nsamp'
-    wind - specifies the time-domain window to be applied to each
-           data segment; should be of length 'segsamp' (see below);
-      otherwise, the default Hanning window is used.
-    segsamp - samples per segment [default: such that we have 8 segments]
-            - if x is a matrix, segsamp is set to the number of rows
-    overlap - percentage overlap, allowed range [0,99]. [default = 50];
-            - if x is a matrix, overlap is set to 0.
+    Direct (FD) method for estimating bicoherence.
 
-  Output:
-    bic     - estimated bicoherence: an nfft x nfft array, with origin
-              at the center, and axes pointing down and to the right.
-    waxis   - vector of frequencies associated with the rows and columns
-              of bic;  sampling frequency is assumed to be 1.
-  """
+    Args:
+        y: data vector or time-series
+        nfft: FFT length [default = power of two greater than nsamp]
+            actual size used is the power of two greater than ``nsamp``
+        wind: time-domain window applied to each data segment
+            should be of length ``segsamp`` (see below); otherwise,
+            the default Hanning window is used
+        nsamp: samples per segment [default: such that there are 8 segments]
+            if ``y`` is a matrix, ``nsamp`` is set to the number of rows
+        overlap: percentage overlap, allowed range [0, 99] [default = 50]
+            if ``y`` is a matrix, overlap is set to 0
 
+    Returns:
+        bic: estimated bicoherence, an nfft x nfft array, with origin
+            at the center, and axes pointing down and to the right
+        waxis: vector of frequencies associated with the rows and columns
+            of ``bic``; sampling frequency is assumed to be 1
+    """
     # Parameter checks
-
     (ly, nrecs) = y.shape
     if ly == 1:
         y = y.reshape(1, -1)

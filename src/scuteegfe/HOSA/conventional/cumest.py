@@ -8,21 +8,29 @@ from .cum4est import *
 
 def cumest(y, norder=2, maxlag=0, nsamp=None, overlap=0, flag='biased', k1=0, k2=0):
     """
-  Second-, third- or fourth-order cumulants.
-  Parameters:
-           y - time-series  - should be a vector
-      norder - cumulant order: 2, 3 or 4 [default = 2]
-      maxlag - maximum cumulant lag to compute [default = 0]
-    samp_seg - samples per segment  [default = data_length]
-     overlap - percentage overlap of segments [default = 0]
-               overlap is clipped to the allowed range of [0,99].
-       flag  - 'biased' or 'unbiased'  [default = 'biased']
-      k1,k2  - specify the slice of 3rd or 4th order cumulants
+    Estimate second-, third-, or fourth-order cumulants.
 
-  Output:
-      y_cum  - C2(m) or C3(m,k1) or C4(m,k1,k2),  -maxlag <= m <= maxlag
-               depending upon the cumulant order selected
-  """
+    This function provides a unified interface for computing cumulants of
+    order 2, 3, or 4 by dispatching to the corresponding estimation routines.
+
+    Args:
+        y: input time-series (vector)
+        norder: cumulant order to compute (2, 3, or 4) [default = 2]
+        maxlag: maximum cumulant lag to compute [default = 0]
+        nsamp: samples per segment [default = data length]
+        overlap: percentage overlap of segments [default = 0]
+            overlap is clipped to the allowed range of [0, 99]
+        flag: cumulant estimation flag
+            'biased': biased estimates are computed [default]
+            'unbiased': unbiased estimates are computed
+        k1: fixed lag for third- or fourth-order cumulant slices
+        k2: second fixed lag for fourth-order cumulant slices
+
+    Returns:
+        y_cum: estimated cumulant sequence or slice
+            C2(m), C3(m, k1), or C4(m, k1, k2), where
+            -maxlag <= m <= maxlag, depending on the selected order
+    """
 
     (ksamp, nrecs) = y.shape
     if ksamp == 1:

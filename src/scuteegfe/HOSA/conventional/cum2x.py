@@ -9,23 +9,26 @@ from ..tools.tools import *
 
 def cum2x(x, y, maxlag=0, nsamp=0, overlap=0, flag='biased'):
     """
-  Cross-covariance
-  Parameters:
-      x,y    - data vectors/matrices with identical dimensions
-               if x,y are matrices, rather than vectors, columns are
-               assumed to correspond to independent realizations,
-               overlap is set to 0, and samp_seg to the row dimension.
-      maxlag - maximum lag to be computed    [default = 0]
-    samp_seg - samples per segment  [default = data_length]
-     overlap - percentage overlap of segments [default = 0]
-               overlap is clipped to the allowed range of [0,99].
-       flag  - 'biased', biased estimates are computed  [default]
-              'unbiased', unbiased estimates are computed.
+    Estimate the second-order cross-cumulant (cross-covariance) function.
 
-  Output:
-       y_cum - estimated cross-covariance
-               E x^*(n)y(n+m),   -maxlag <= m <= maxlag
-  """
+    Args:
+        x: data vector or matrix
+        y: data vector or matrix (same dimensions as x)
+            if x and y are matrices, columns correspond to independent
+            realizations; overlap is set to 0 and samp_seg is set to the
+            row dimension
+        maxlag: maximum lag to be computed [default = 0]
+        nsamp: samples per segment [default = data length]
+        overlap: percentage overlap of segments [default = 0]
+            overlap is clipped to the allowed range of [0, 99]
+        flag: covariance estimation flag
+            'biased': biased estimates are computed [default]
+            'unbiased': unbiased estimates are computed
+
+    Returns:
+        y_cum: estimated cross-covariance sequence
+            E[x*(n) y(n + m)], where -maxlag <= m <= maxlag
+    """
 
     (lx, nrecs) = x.shape
     if (lx, nrecs) != y.shape:

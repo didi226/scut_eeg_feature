@@ -8,24 +8,26 @@ from .cum2x import *
 
 def cum4est(y, maxlag=0, nsamp=0, overlap=0, flag='biased', k1=0, k2=0):
   """
-  CUM4EST Fourth-order cumulants.
-  Parameters:
-          Should be invoked via CUMEST for proper parameter checks
-          y_cum = cum4est (y, maxlag, samp_seg, overlap, flag, k1, k2)
-          Computes sample estimates of fourth-order cumulants
-          via the overlapped segment method.
-          y_cum = cum4est (y, maxlag, samp_seg, overlap, flag, k1, k2)
-                 y: input data vector (column)
-            maxlag: maximum lag
-          samp_seg: samples per segment
-           overlap: percentage overlap of segments
-             flag : 'biased', biased estimates are computed
-                  : 'unbiased', unbiased estimates are computed.
-      k1,k2 : the fixed lags in C3(m,k1) or C4(m,k1,k2)
+  Estimate a fourth-order cumulant slice for fixed lags.
 
-  Output:
-      y_cum : estimated fourth-order cumulant slice
-              C4(m,k1,k2)  -maxlag <= m <= maxlag
+  This function implements CUM4EST and should be invoked via ``cumest``
+  for proper parameter checking. It computes sample estimates of
+  fourth-order cumulants using the overlapped segment method.
+
+  Args:
+      y: input data vector (column)
+      maxlag: maximum lag
+      nsamp: samples per segment
+      overlap: percentage overlap of segments
+      flag: cumulant estimation flag
+          'biased': biased estimates are computed
+          'unbiased': unbiased estimates are computed
+      k1: first fixed lag in the fourth-order cumulant C4(m, k1, k2)
+      k2: second fixed lag in the fourth-order cumulant C4(m, k1, k2)
+
+  Returns:
+      y_cum: estimated fourth-order cumulant slice
+          C4(m, k1, k2), where -maxlag <= m <= maxlag
   """
 
   (n1, n2) = shape(y, 2)
