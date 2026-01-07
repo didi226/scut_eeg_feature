@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
