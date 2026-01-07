@@ -110,6 +110,9 @@ autoapi_dirs = ["../../src"]
 autoapi_keep_files = True
 autoapi_root = "api"
 autoapi_member_order = "groupwise"
+autoapi_generate_api_docs = True
+autoapi_add_toctree_entry = False
+
 
 
 
