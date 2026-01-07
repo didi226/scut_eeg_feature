@@ -18,8 +18,8 @@ version= '0.0.1'
 release = '0.0.1'
 extensions = [ 
     'sphinx.ext.napoleon',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    #'sphinx.ext.autodoc',
+    #'sphinx.ext.autosummary',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
@@ -101,7 +101,7 @@ html_logo = "_static/logo.svg"
 html_favicon = "_static/logo.svg"
 
 
-autosummary_generate = True
+autosummary_generate = False
 autodoc_typehints = "description"
 autodoc_member_order = "groupwise"
 # -- Options for autoapi -------------------------------------------------------
@@ -136,61 +136,13 @@ html_theme_options = {
             "icon": "fab fa-github-square",
             "type": "fontawesome",
         },     
-        #     {
-        #     "name": "PyPI",
-        #     "url": "https://pypi.org/project/sssm/",
-        #     "icon": "_static/PyPI.svg",
-        #     "type": "local",
-        # },   
-        # {
-        #     "name": "SSS",
-        #     "url": "https://sleep-semantic-segmentation.readthedocs.io/en/latest/",
-        #     "icon": "_static/logo_only.png",
-        #     "type": "local",
-        # }
+
         ],
         "announcement": "This is a community-supported different kinds of features for EEG or other time series signal . If you'd like to contribute, check out  <a href='https://github.com/didi226/scut_eeg_feature'>our GitHub repository</a>. Your contributions are welcome! ",
-        # "use_edit_page_button": True,
-    #     "show_toc_level": 2,
-    #     "navbar_align": "left", 
-    #     "show_version_warning_banner": True,
-    #     "footer_start": ["copyright"],
-    # "footer_center": ["sphinx-version"],
-    # "secondary_sidebar_items": {
-    #     "**/*": ["page-toc", "edit-this-page", "sourcelink"],
-    #     "examples/no-sidebar": [],
-    # },
         }
-# rediraffe_redirects = {
-#     "contributing.rst": "community/index.rst",
-# }
-# html_sidebars = {
-#     "community/index": [
-#         "sidebar-nav-bs",
-#         "custom-template",
-#     ],  # This ensures we test for custom sidebars
-#     "examples/no-sidebar": [],  # Test what page looks like with no sidebar items
-#     "examples/persistent-search-field": ["search-field"],
-#     # Blog sidebars
-#     # ref: https://ablog.readthedocs.io/manual/ablog-configuration-options/#blog-sidebars
-#     "examples/blog/*": [
-#         "ablog/postcard.html",
-#         "ablog/recentposts.html",
-#         "ablog/tagcloud.html",
-#         "ablog/categories.html",
-#         "ablog/authors.html",
-#         "ablog/languages.html",
-#         "ablog/locations.html",
-#         "ablog/archives.html",
-#     ],
-# }
 
-# html_context = {
-#     "github_user": "pydata",
-#     "github_repo": "pydata-sphinx-theme",
-#     "github_version": "main",
-#     "doc_path": "docs",
-# }
+
+
 
 
 htmlhelp_basename = "SEFEAdoc"
