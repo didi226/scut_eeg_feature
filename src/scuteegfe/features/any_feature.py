@@ -1191,9 +1191,14 @@ def compute_aac_connectivity(data, sfreq=250, band=np.array([[4, 8],[30,45]]),tf
     """
 
     n_channel, n_times = data.shape
-    freqs = np.arange(max(band[0,0]-1,0), band[1,1]+1, 0.5)
+    freqs = np.arange( max(band[0, 0] - 1, 0.5),band[1, 1] + 1e-6,0.5)
+    safety_ratio = 0.5
+    max_cycles = safety_ratio * freqs * n_times / sfreq
+    n_cycles_eff = np.minimum(n_cycles, max_cycles)
+    n_cycles_eff[n_cycles_eff < 1.0] = 1.0
+
     fft_coeffs, freqs = compute_tfr(data= np.expand_dims(data, axis=0), sampling_freq=sfreq, freqs=freqs,
-                                    tfr_mode=tfr_mode ,n_cycles=n_cycles, verbose=False)
+                                    tfr_mode=tfr_mode ,n_cycles=n_cycles_eff, verbose=False)
     aac = AAC(data=fft_coeffs, freqs=freqs, sampling_freq=sfreq, verbose=False)
     if mode == "self":
         ch_idx = tuple(range(n_channel))

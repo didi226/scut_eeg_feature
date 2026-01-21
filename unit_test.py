@@ -360,10 +360,10 @@ class MyTestCase(unittest.TestCase):
         print(fea1.features.shape)
     def test_aac_connectivity(self):
         from scuteegfe.mne_features_wrapper.feature_wrapper import Feature
-        data = np.random.rand(3, 5, 1000)
+        data = np.random.rand(3, 5, 2500)
         fea1 = Feature(data = data, sfreq=250, selected_funcs=['aac_connectivity'],
                        funcs_params={"aac_connectivity__sfreq": 250,
-                                     "aac_connectivity__band": np.array([[4, 8], [30, 45]]),
+                                     "aac_connectivity__band": np.array([[1, 3], [30, 45]]),
                                      "aac_connectivity__mode": 'self'
                                      } )
         print(fea1.features.shape)
@@ -417,7 +417,7 @@ if __name__ == '__main__':
 
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_offset_exponent_cf')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_aac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 
