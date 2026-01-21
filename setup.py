@@ -6,7 +6,7 @@ from setuptools import find_packages
 
 setuptools.setup(
     name="scuteegfe",
-    version="0.0.4",
+    version="0.0.5",
     author="bkxcyu",
     author_email="bkxcyu@gmail.com",
     description="EEG Signal Feature Exacting, a wrapper of mne_features",
