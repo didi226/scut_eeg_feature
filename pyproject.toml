@@ -1,3 +1,15 @@
+[project]
+name = "scuteegfe"
+version = "0.0.5"
+description = "EEG feature extraction package"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "numpy==1.26.0",
+]
+
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

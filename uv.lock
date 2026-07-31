@@ -1,0 +1,29 @@
+version = 1
+revision = 3
+requires-python = "==3.10.*"
+
+[[package]]
+name = "numpy"
+version = "1.26.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/b3/b13bce39ba82b7398c06d10446f5ffd5c07db39b09bd37370dc720c7951c/numpy-1.26.0.tar.gz", hash = "sha256:f93fc78fe8bf15afe2b8d6b6499f1c73953169fad1e9a8dd086cdff3190e7fdf", size = 15633455, upload-time = "2023-09-16T20:12:58.065Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/be/f8/034752c5131c46e10364e4db241974f2eb6bb31bbfc4335344c19e17d909/numpy-1.26.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f8db2f125746e44dce707dd44d4f4efeea8d7e2b43aace3f8d1f235cfa2733dd", size = 20617359, upload-time = "2023-09-16T19:58:18.591Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/ff/0e1f31c70495df6a1afbe98fa237f36e6fb7c5443fcb9a53f43170e5814c/numpy-1.26.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:0621f7daf973d34d18b4e4bafb210bbaf1ef5e0100b5fa750bd9cde84c7ac292", size = 13953220, upload-time = "2023-09-16T19:58:41.481Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/c7/dc05fb56c0536f499d75ef4e201c37facb75e1ad1f416b98a9939f89f6f1/numpy-1.26.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:51be5f8c349fdd1a5568e72713a21f518e7d6707bcf8503b528b88d33b57dc68", size = 14167853, upload-time = "2023-09-16T19:59:03.56Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/5a/f265a1ba3641d16b5480a217a6aed08cceef09cd173b568cd5351053472a/numpy-1.26.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:767254ad364991ccfc4d81b8152912e53e103ec192d1bb4ea6b1f5a7117040be", size = 18181958, upload-time = "2023-09-16T19:59:30.999Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/cc/be866f190cfe818e1eb128f887b3cd715cfa554de9d5fe876c5a3ea3af48/numpy-1.26.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:436c8e9a4bdeeee84e3e59614d38c3dbd3235838a877af8c211cfcac8a80b8d3", size = 18025005, upload-time = "2023-09-16T19:59:59.382Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/16/bb4ff6c803f3000c130618f75a879fc335c9f9434d1317033c35876709ca/numpy-1.26.0-cp310-cp310-win32.whl", hash = "sha256:c2e698cb0c6dda9372ea98a0344245ee65bdc1c9dd939cceed6bb91256837896", size = 20745239, upload-time = "2023-09-16T20:00:33.545Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/05/ef9fc04adda45d537619ea956bc33489f50a46badc949c4280d8309185ec/numpy-1.26.0-cp310-cp310-win_amd64.whl", hash = "sha256:09aaee96c2cbdea95de76ecb8a586cb687d281c881f5f17bfc0fb7f5890f6b91", size = 15793269, upload-time = "2023-09-16T20:00:59.079Z" },
+]
+
+[[package]]
+name = "scuteegfe"
+version = "0.0.5"
+source = { editable = "." }
+dependencies = [
+    { name = "numpy" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "numpy", specifier = "==1.26.0" }]

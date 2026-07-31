@@ -11,4 +11,6 @@
 *.pyc
 # Sphinx / Jupyter build cache
 docs/source/.virtual_documents/
+/scuteegfe310/
+/scuteegfe311/
 
