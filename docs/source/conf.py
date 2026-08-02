@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.abspath('../../src'))
 project = 'SCUT EEG Feature'
 copyright = '2024, SCUT EEG  Community'
 author = 'XiaoYu Bao & Di Chen'
-version= '0.4.2'
-release = '0.4.2'
+version= '0.6.0'
+release = '0.6.0'
 extensions = [ 
     'sphinx.ext.napoleon',
     #'sphinx.ext.autodoc',

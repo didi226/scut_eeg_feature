@@ -5,9 +5,9 @@ Installation
 
 Dependencies
 ------------
-* ``python`` (>=3.8)
+* ``python`` (>=3.10, <3.13)
 * ``mne`` (>=1.6)
-* ``numpy`` (>=1.21)
+* ``numpy`` (>=1.21,<2)
 * ``scipy`` (>=1.4.0)
 * ``scikit-learn`` (>= 1.3.0, <1.7.0)
 

@@ -1,10 +1,32 @@
 [project]
 name = "scuteegfe"
-version = "0.0.5"
+authors = [
+    { name = "bkxcyu", email = "bkxcyu@gmail.com"},
+    { name = "didi" , email = "dididichen@outlook.com"}
+]
+version = "0.0.6"
 description = "EEG feature extraction package"
-requires-python = ">=3.10,<3.11"
+requires-python = ">=3.10,<3.13"
 dependencies = [
+    "antropy>=0.2.2",
+    "einops>=0.8.2",
+    "emd-signal>=1.10.0",
+    "entropyhub>=2.0",
+    "fooof>=1.1.1",
+    "mne>=1.12.1",
+    "mne-connectivity>=0.8.1",
+    "mne-features>=0.3.2",
+    "nilearn>=0.14.0",
+    "nolds>=0.6.3",
     "numpy==1.26.0",
+    "pactools>=0.3.1",
+    "pybispectra>=1.3.1",
+    "pyentrp>=2.1.0",
+    "pyts>=0.13.0",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "setuptools>=83.0.0",
+    "statsmodels>=0.14.6",
 ]
 
 [build-system]
