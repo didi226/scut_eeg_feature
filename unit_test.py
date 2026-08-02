@@ -417,7 +417,7 @@ if __name__ == '__main__':
 
     suite = unittest.TestSuite()
     suite.addTests(
-        [MyTestCase('test_multi_feature_my_feature')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
+        [MyTestCase('test_aac_connectivity')])  # test_net_eegnet_TR_crosssub  test_psd test_insub_classify
     runner = unittest.TextTestRunner()  # 通过unittest自带的TextTestRunner方法
     runner.run(suite)
 
