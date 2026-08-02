@@ -1,5 +1,11 @@
 [project]
 name = "scuteegfe"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 authors = [
     { name = "bkxcyu", email = "bkxcyu@gmail.com"},
     { name = "didi" , email = "dididichen@outlook.com"}
