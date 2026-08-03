@@ -1,6 +1,6 @@
 ## Description
 
-`scuteegfe`[mne-feature](https://mne.tools/mne-features/api.html)  is an encapsulation that adds more features on top of it, especially the feature of functional connectivity.
+`scuteegfe`[scuteegfe](https://scut-eeg-feature.readthedocs.io/en/latest/)  is an encapsulation that adds more features on top of it, especially the feature of functional connectivity.
 
 You can get more information and usage about the package from the  [Document ](https://scut-eeg-feature.readthedocs.io/en/latest/).
 
