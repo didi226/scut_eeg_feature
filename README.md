@@ -52,22 +52,8 @@ rng = np.random.default_rng(42)
 # Shape: (n_epochs, n_channels, n_times)
 data = rng.standard_normal((10, 8, sfreq * 4))
 
-extractor = Feature(
-    data,
-    sfreq=sfreq,
-    selected_funcs=[
-        "pow_freq_bands",
-        "Shannon_entropy",
-        "Petrosian_fd",
-    ],
-    funcs_params={
-        "pow_freq_bands__freq_bands": np.array([
-            [1, 4],
-            [4, 8],
-            [8, 13],
-            [13, 30],
-            [30, 50],
-        ]),
+extractor = Feature(data, sfreq=sfreq, selected_funcs=["pow_freq_bands", "Shannon_entropy", "Petrosian_fd"],
+    funcs_params={"pow_freq_bands__freq_bands": np.array([[1, 4], [4, 8],[8, 13],[13, 30],[30, 50],]),
         "pow_freq_bands__normalize": False,
         "Shannon_entropy__sfreq": sfreq,
         "Shannon_entropy__win_times": 1,
@@ -95,15 +81,9 @@ Some matrix-valued functions, such as `correlation_matrix`, return:
 
 ## Selecting features
 
-Feature names are passed to `selected_funcs` **without** the `compute_` prefix.
+Feature names are passed to `selected_funcs`.
 
-For example, the source function:
-
-```python
-compute_fuzzy_entropy(...)
-```
-
-is selected as:
+For example,
 
 ```python
 selected_funcs=["fuzzy_entropy"]
@@ -121,16 +101,9 @@ funcs_params={
 For functions that use the sampling frequency, pass `sfreq` to both `Feature` and the corresponding function parameters when required:
 
 ```python
-extractor = Feature(
-    data,
-    sfreq=sfreq,
+extractor = Feature(data, sfreq=sfreq,
     selected_funcs=["DFA", "Renyi_Entropy", "Tsallis_Entropy"],
-    funcs_params={
-        "DFA__sfreq": sfreq,
-        "Renyi_Entropy__sfreq": sfreq,
-        "Tsallis_Entropy__sfreq": sfreq,
-    },
-)
+    funcs_params={"DFA__sfreq": sfreq,"Renyi_Entropy__sfreq": sfreq,"Tsallis_Entropy__sfreq": sfreq,},)
 ```
 
 ## Using MNE-Features functions
@@ -142,31 +115,11 @@ extractor = Feature(
     data,
     sfreq=sfreq,
     selected_funcs=["mean", "variance", "pow_freq_bands"],
-    funcs_params={
-        "pow_freq_bands__freq_bands": np.array([
-            [1, 4],
-            [4, 8],
-            [8, 13],
-            [13, 30],
-            [30, 50],
-        ]),
-        "pow_freq_bands__normalize": False,
+    funcs_params={"pow_freq_bands__freq_bands": np.array([[1, 4],[4, 8],[8, 13],[13, 30],[30, 50],]),
+    "pow_freq_bands__normalize": False,
     },
 )
 ```
-
-To request the package-defined collection of MNE functions:
-
-```python
-extractor = Feature(
-    data,
-    sfreq=sfreq,
-    selected_funcs=Feature.mne_defined_funcs,
-    funcs_params=None,
-    n_jobs=8,
-)
-```
-
 See the [MNE-Features API](https://mne.tools/mne-features/api.html) for the available MNE-defined functions and their parameters.
 
 ## Functional connectivity
@@ -174,9 +127,7 @@ See the [MNE-Features API](https://mne.tools/mne-features/api.html) for the avai
 `correlation_matrix` provides a unified interface for covariance-, correlation-, spectral-, phase-, envelope-, and directed-connectivity measures.
 
 ```python
-connectivity = Feature(
-    data,
-    sfreq=sfreq,
+connectivity = Feature(data,sfreq=sfreq,
     selected_funcs=["correlation_matrix"],
     funcs_params={
         "correlation_matrix__sfreq": sfreq,
@@ -185,7 +136,6 @@ connectivity = Feature(
         "correlation_matrix__n_win": 4,
     },
 )
-
 connectivity_matrices = connectivity.features
 print(connectivity_matrices.shape)
 ```
@@ -199,26 +149,17 @@ Common `kind` options include covariance, correlation, partial correlation, tang
 PAC can be calculated within each channel or between channel pairs.
 
 ```python
-pac = Feature(
-    data,
-    sfreq=sfreq,
-    selected_funcs=["pac_connectivity"],
-    funcs_params={
-        "pac_connectivity__sfreq": sfreq,
-        "pac_connectivity__band": np.array([
-            [4, 8],
-            [30, 45],
-        ]),
+pac = Feature(data,sfreq=sfreq, selected_funcs=["pac_connectivity"],
+    funcs_params={"pac_connectivity__sfreq": sfreq,
+        "pac_connectivity__band": np.array([[4, 8],[30, 45],]),
         "pac_connectivity__method": "tort",
         "pac_connectivity__mode": "self",
         "pac_connectivity__approach_pac": "mean",
     },
 )
-
 pac_features = pac.features
 ```
 
-Related functions include `aac_connectivity`, `pac_connectivity_mod`, and `periodic_pac_connectivity`.
 
 ## Available custom features
 
