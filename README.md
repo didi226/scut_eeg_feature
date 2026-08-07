@@ -216,14 +216,6 @@ The names below are the values used in `selected_funcs`.
 | `EMD` | Empirical mode decomposition into intrinsic mode functions. |
 | `Itakura_Distance` | Dynamic-time-warping distance with an Itakura constraint. |
 
-### Basic and utility features
-
-| Feature | Description | Status |
-|---|---|---|
-| `Num_zero_crossings` | Number of zero crossings in each channel. | Available |
-| `Hilbert_abs` | Absolute Hilbert-transform envelope. | Deprecated |
-| `test2` | Mean across the final data axis. | Testing utility |
-
 ## Important notes
 
 - EEG preprocessing is not performed automatically. Apply appropriate filtering, artifact rejection, referencing, epoching, and normalization before feature extraction.
