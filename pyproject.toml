@@ -43,3 +43,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+readme = "README.md"
+license = {file = "LICENSE"}
+
+[project.urls]
+Homepage = "https://github.com/didi226/scut_eeg_feature"
+Documentation = "https://scut-eeg-feature.readthedocs.io"
+Source = "https://github.com/didi226/scut_eeg_feature"
+Issues = "https://github.com/didi226/scut_eeg_feature/issues"
